@@ -1,4 +1,4 @@
-const FIELDS = ['id', 'competitor', 'postUrl', 'postDate', 'postText', 'likes', 'retweets', 'replies', 'views', 'category']
+const FIELDS = ['id', 'competitor', 'postUrl', 'postDate', 'postText', 'likes', 'retweets', 'replies', 'views', 'category', 'tweetId', 'autoLogged']
 
 function escapeCSVValue(val) {
   const str = String(val ?? '')

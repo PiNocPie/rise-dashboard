@@ -1,4 +1,4 @@
-// Vercel Cron Job — runs daily at noon UTC
+// Vercel Cron Job — runs daily at 8am Vietnam time (1am UTC)
 // Fetches tweets from 24-48 hours ago for each competitor and auto-logs to Firestore
 
 import { getApps, initializeApp, cert } from 'firebase-admin/app'
@@ -27,6 +27,7 @@ function getDb() {
 
 function classifyTweet(text) {
   const t = text.toLowerCase()
+  const hasLink = text.includes('http')
 
   if (/🧵|thread|\b1\/\d/.test(t)) return 'Thread'
   if (/\bvideo\b|\bwatch\b|\byoutube\b|youtu\.be|\bstream\b|\bclip\b/.test(t)) return 'Video'
@@ -38,8 +39,8 @@ function classifyTweet(text) {
   if (/community|event|hackathon|grant|bounty|meetup/.test(t)) return 'Community'
   if (/read more|full article|longform|research|report/.test(t)) return 'Article/Longform'
 
-  // Yap = long personal opinion with no links
-  if (text.length > 220 && !text.includes('http')) return 'Yap'
+  // Yap = any personal opinion/commentary with no external link
+  if (!hasLink) return 'Yap'
 
   return 'Other'
 }
@@ -108,7 +109,8 @@ export default async function handler(req, res) {
           likes: m.like_count ?? 0,
           retweets: m.retweet_count ?? 0,
           replies: m.reply_count ?? 0,
-          tweetText: tweet.text,
+          postText: tweet.text,
+          tweetId: tweet.id,
           autoLogged: true,
           syncedAt: new Date().toISOString(),
         })
