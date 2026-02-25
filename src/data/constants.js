@@ -1,6 +1,6 @@
 export const RISE_COMPETITORS = [
   'MegaETH', 'Monad', 'N1', 'Hyperliquid', 'Ink',
-  'Starknet', 'Base', 'Arbitrum',
+  'Starknet', 'Base', 'Arbitrum', 'Nado', '01 Exchange',
 ]
 
 export const CONTENT_CATEGORIES = [
@@ -36,30 +36,34 @@ export const COMPETITOR_COLORS = {
   Hyperliquid: '#3b82f6',
   Ink: '#f59e0b',
   Starknet: '#7c3aed',
-
   Base: '#0052ff',
   Arbitrum: '#12aaff',
+  Nado: '#06b6d4',
+  '01 Exchange': '#f43f5e',
 }
 
 export const COMPETITOR_TWITTER = {
-  MegaETH: 'https://x.com/megaeth_labs',
-  Monad: 'https://x.com/monad_xyz',
+  MegaETH: 'https://x.com/megaeth',
+  Monad: 'https://x.com/monad',
   N1: 'https://x.com/n1chain',
   Hyperliquid: 'https://x.com/HyperliquidX',
   Ink: 'https://x.com/inkonchain',
   Starknet: 'https://x.com/Starknet',
-
   Base: 'https://x.com/base',
   Arbitrum: 'https://x.com/arbitrum',
+  Nado: 'https://x.com/Nadohq',
+  '01 Exchange': 'https://x.com/o1_exchange',
 }
 
 export const COMPETITOR_TWITTER_USERNAMES = {
-  MegaETH: 'megaeth_labs',
-  Monad: 'monad_xyz',
+  MegaETH: 'megaeth',
+  Monad: 'monad',
   N1: 'n1chain',
   Hyperliquid: 'HyperliquidX',
   Ink: 'inkonchain',
   Starknet: 'Starknet',
   Base: 'base',
   Arbitrum: 'arbitrum',
+  Nado: 'Nadohq',
+  '01 Exchange': 'o1_exchange',
 }

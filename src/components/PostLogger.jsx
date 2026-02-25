@@ -79,7 +79,7 @@ export default function PostLogger({ competitors, onAddPost }) {
       replies: Number(form.replies) || 0,
       views: Number(form.views) || 0,
     })
-    setForm({ ...EMPTY_FORM, competitor: competitors[0] || '', postDate: today })
+    setForm({ ...EMPTY_FORM, competitor: form.competitor, postDate: today })
     setErrors({})
     setSuccess(true)
     setTimeout(() => setSuccess(false), 3000)

@@ -34,7 +34,7 @@ function SortBtn({ field, current, dir, onClick, children }) {
   )
 }
 
-export default function TopPosts({ posts, allCompetitors, onDeletePost }) {
+export default function TopPosts({ posts, allCompetitors, onDeletePost, isLoggedIn }) {
   const [sortField, setSortField] = useState('views')
   const [sortDir, setSortDir] = useState('desc')
   const [filterCompetitor, setFilterCompetitor] = useState('all')
@@ -254,7 +254,7 @@ export default function TopPosts({ posts, allCompetitors, onDeletePost }) {
                       {post._er > 0 ? `${post._er.toFixed(2)}%` : '—'}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      {confirmDelete === post.id ? (
+                      {isLoggedIn && (confirmDelete === post.id ? (
                         <div className="flex items-center gap-1.5 justify-center">
                           <button
                             onClick={() => { onDeletePost(post.id); setConfirmDelete(null) }}
@@ -281,7 +281,7 @@ export default function TopPosts({ posts, allCompetitors, onDeletePost }) {
                         >
                           ✕
                         </button>
-                      )}
+                      ))}
                     </td>
                   </tr>
                 )

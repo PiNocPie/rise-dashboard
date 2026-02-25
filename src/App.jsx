@@ -1,5 +1,6 @@
-import { useState, useRef } from 'react'
-import { useLocalStorage } from './hooks/useLocalStorage'
+import { useState, useEffect, useRef } from 'react'
+import { db } from './firebase'
+import { collection, addDoc, deleteDoc, doc, onSnapshot, writeBatch } from 'firebase/firestore'
 import { RISE_COMPETITORS } from './data/constants'
 import { exportToCSV, importFromCSV } from './utils/csvUtils'
 import PostLogger from './components/PostLogger'
@@ -7,6 +8,7 @@ import Dashboard from './components/Dashboard'
 import ComparisonCharts from './components/ComparisonCharts'
 import ContentTheme from './components/ContentTheme'
 import TopPosts from './components/TopPosts'
+import CalendarView from './components/CalendarView'
 
 const TABS = [
   { id: 'dashboard', label: 'Overview' },
@@ -14,23 +16,100 @@ const TABS = [
   { id: 'comparison', label: 'Comparisons' },
   { id: 'themes', label: 'Content Themes' },
   { id: 'posts', label: 'All Posts' },
+  { id: 'calendar', label: 'Calendar' },
+]
+
+const WEEK_OPTIONS = [
+  { label: 'All time', value: 0 },
+  { label: 'Last 1 week', value: 1 },
+  { label: 'Last 2 weeks', value: 2 },
+  { label: 'Last 4 weeks', value: 4 },
+  { label: 'Last 8 weeks', value: 8 },
 ]
 
 export default function App() {
-  const [posts, setPosts] = useLocalStorage('rise-intel-posts', [])
+  const [posts, setPosts] = useState([])
   const [activeTab, setActiveTab] = useState('dashboard')
   const [importMsg, setImportMsg] = useState(null)
+  const [weekFilter, setWeekFilter] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [showWipe, setShowWipe] = useState(false)
+  const [wipePassword, setWipePassword] = useState('')
+  const [wipeError, setWipeError] = useState('')
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [showLogin, setShowLogin] = useState(false)
+  const [loginPassword, setLoginPassword] = useState('')
+  const [loginError, setLoginError] = useState('')
+  const [pendingTab, setPendingTab] = useState(null)
   const importRef = useRef(null)
 
   const competitors = RISE_COMPETITORS
-  const filteredPosts = posts.filter(p => competitors.includes(p.competitor))
 
-  const handleAddPost = (post) => {
-    setPosts(prev => [{ ...post, id: `post-${Date.now()}-${Math.random().toString(36).slice(2)}` }, ...prev])
+  // Sync posts from Firestore in real-time
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'posts'), (snapshot) => {
+      const data = snapshot.docs.map(d => ({ ...d.data(), _docId: d.id }))
+      setPosts(data)
+      setLoading(false)
+    })
+    return () => unsub()
+  }, [])
+
+  const filteredPosts = posts.filter(p => {
+    if (!competitors.includes(p.competitor)) return false
+    if (weekFilter === 0) return true
+    const postDate = new Date(p.postDate)
+    const cutoff = new Date()
+    cutoff.setDate(cutoff.getDate() - weekFilter * 7)
+    return postDate >= cutoff
+  })
+
+  const handleTabClick = (tabId) => {
+    if (tabId === 'logger' && !isLoggedIn) {
+      setPendingTab(tabId)
+      setShowLogin(true)
+      setLoginPassword('')
+      setLoginError('')
+    } else {
+      setActiveTab(tabId)
+    }
   }
 
-  const handleDeletePost = (id) => {
-    setPosts(prev => prev.filter(p => p.id !== id))
+  const handleLogin = () => {
+    if (loginPassword !== 'deeznuts69@') {
+      setLoginError('Wrong password')
+      return
+    }
+    setIsLoggedIn(true)
+    setShowLogin(false)
+    if (pendingTab) { setActiveTab(pendingTab); setPendingTab(null) }
+    setLoginPassword('')
+    setLoginError('')
+  }
+
+  const handleAddPost = async (post) => {
+    const newPost = { ...post, id: `post-${Date.now()}-${Math.random().toString(36).slice(2)}` }
+    await addDoc(collection(db, 'posts'), newPost)
+  }
+
+  const handleDeletePost = async (id) => {
+    const post = posts.find(p => p.id === id)
+    if (post?._docId) await deleteDoc(doc(db, 'posts', post._docId))
+  }
+
+  const handleWipe = async () => {
+    if (wipePassword !== 'deeznuts69@') {
+      setWipeError('Wrong password')
+      return
+    }
+    const batch = writeBatch(db)
+    posts.forEach(p => {
+      if (p._docId) batch.delete(doc(db, 'posts', p._docId))
+    })
+    await batch.commit()
+    setShowWipe(false)
+    setWipePassword('')
+    setWipeError('')
   }
 
   const handleExport = () => {
@@ -43,14 +122,17 @@ export default function App() {
     if (!file) return
     importFromCSV(
       file,
-      (imported) => {
-        setPosts(prev => {
-          const existingIds = new Set(prev.map(p => p.id))
-          const newPosts = imported.filter(p => !existingIds.has(p.id))
-          setImportMsg(`Imported ${newPosts.length} new posts (${imported.length - newPosts.length} duplicates skipped).`)
-          setTimeout(() => setImportMsg(null), 4000)
-          return [...prev, ...newPosts]
+      async (imported) => {
+        const existingIds = new Set(posts.map(p => p.id))
+        const newPosts = imported.filter(p => !existingIds.has(p.id))
+        const batch = writeBatch(db)
+        newPosts.forEach(p => {
+          const ref = doc(collection(db, 'posts'))
+          batch.set(ref, p)
         })
+        await batch.commit()
+        setImportMsg(`Imported ${newPosts.length} new posts (${imported.length - newPosts.length} duplicates skipped).`)
+        setTimeout(() => setImportMsg(null), 4000)
       },
       (err) => {
         setImportMsg(`Import failed: ${err}`)
@@ -62,11 +144,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#0a0a12', color: '#e2e8f0' }}>
-      {/* Header */}
       <header style={{ backgroundColor: '#0d0d1a', borderBottom: '1px solid #1a1a2e' }}>
         <div className="max-w-screen-xl mx-auto px-6">
           <div className="flex items-center justify-between py-4">
-            {/* Logo */}
             <div className="flex items-center gap-3">
               <div
                 className="flex items-center justify-center w-8 h-8 rounded text-lg"
@@ -83,34 +163,61 @@ export default function App() {
             </div>
 
             <div className="flex items-center gap-2">
+              <select
+                value={weekFilter}
+                onChange={e => setWeekFilter(Number(e.target.value))}
+                className="px-3 py-1.5 text-xs font-medium rounded-lg"
+                style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e', color: '#9ca3af', cursor: 'pointer' }}
+              >
+                {WEEK_OPTIONS.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+              {isLoggedIn && (
+                <>
+                  <button
+                    onClick={handleExport}
+                    disabled={posts.length === 0}
+                    className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
+                    style={{
+                      border: '1px solid #1a1a2e',
+                      color: posts.length === 0 ? '#374151' : '#9ca3af',
+                      cursor: posts.length === 0 ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    ↓ Export CSV
+                  </button>
+                  <label
+                    className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer"
+                    style={{ border: '1px solid #1a1a2e', color: '#9ca3af' }}
+                  >
+                    ↑ Import CSV
+                    <input ref={importRef} type="file" accept=".csv" className="hidden" onChange={handleImport} />
+                  </label>
+                </>
+              )}
               <button
-                onClick={handleExport}
-                disabled={posts.length === 0}
+                onClick={() => isLoggedIn ? setIsLoggedIn(false) : (setShowLogin(true), setLoginPassword(''), setLoginError(''))}
                 className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
-                style={{
-                  border: '1px solid #1a1a2e',
-                  color: posts.length === 0 ? '#374151' : '#9ca3af',
-                  cursor: posts.length === 0 ? 'not-allowed' : 'pointer',
-                }}
+                style={{ border: '1px solid #1a1a2e', color: isLoggedIn ? '#00e676' : '#9ca3af', cursor: 'pointer' }}
               >
-                ↓ Export CSV
+                {isLoggedIn ? '🔓 Logout' : '🔒 Login'}
               </button>
-              <label
-                className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer"
-                style={{ border: '1px solid #1a1a2e', color: '#9ca3af' }}
+              <button
+                onClick={() => { setShowWipe(true); setWipePassword(''); setWipeError('') }}
+                className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
+                style={{ border: '1px solid #3a1a1a', color: '#ef4444', cursor: 'pointer' }}
               >
-                ↑ Import CSV
-                <input ref={importRef} type="file" accept=".csv" className="hidden" onChange={handleImport} />
-              </label>
+                🗑 Wipe Data
+              </button>
             </div>
           </div>
 
-          {/* Tabs */}
           <div className="flex">
             {TABS.map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabClick(tab.id)}
                 className="px-5 py-3 text-sm font-medium border-b-2 transition-all"
                 style={
                   activeTab === tab.id
@@ -125,7 +232,76 @@ export default function App() {
         </div>
       </header>
 
-      {/* Import feedback */}
+      {showLogin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+          <div className="rounded-xl p-6 w-80 flex flex-col gap-4" style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e' }}>
+            <h3 className="text-white font-bold">Login Required</h3>
+            <p className="text-xs" style={{ color: '#6b7280' }}>Enter password to log or delete posts.</p>
+            <input
+              type="password"
+              value={loginPassword}
+              onChange={e => { setLoginPassword(e.target.value); setLoginError('') }}
+              onKeyDown={e => e.key === 'Enter' && handleLogin()}
+              placeholder="Password"
+              autoFocus
+              className="px-3 py-2 rounded-lg text-sm"
+              style={{ backgroundColor: '#0d0d1a', border: '1px solid #1a1a2e', color: '#e2e8f0', outline: 'none' }}
+            />
+            {loginError && <p className="text-xs" style={{ color: '#ef4444' }}>{loginError}</p>}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowLogin(false)}
+                className="flex-1 py-2 rounded-lg text-xs font-medium"
+                style={{ border: '1px solid #1a1a2e', color: '#6b7280' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleLogin}
+                className="flex-1 py-2 rounded-lg text-xs font-medium"
+                style={{ backgroundColor: '#00e676', color: '#000' }}
+              >
+                Login
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showWipe && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+          <div className="rounded-xl p-6 w-80 flex flex-col gap-4" style={{ backgroundColor: '#11111e', border: '1px solid #2a1a1a' }}>
+            <h3 className="text-white font-bold">Wipe All Data</h3>
+            <p className="text-xs" style={{ color: '#6b7280' }}>This will permanently delete all posts. Enter password to confirm.</p>
+            <input
+              type="password"
+              value={wipePassword}
+              onChange={e => { setWipePassword(e.target.value); setWipeError('') }}
+              placeholder="Password"
+              className="px-3 py-2 rounded-lg text-sm"
+              style={{ backgroundColor: '#0d0d1a', border: '1px solid #1a1a2e', color: '#e2e8f0', outline: 'none' }}
+            />
+            {wipeError && <p className="text-xs" style={{ color: '#ef4444' }}>{wipeError}</p>}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowWipe(false)}
+                className="flex-1 py-2 rounded-lg text-xs font-medium"
+                style={{ border: '1px solid #1a1a2e', color: '#6b7280' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleWipe}
+                className="flex-1 py-2 rounded-lg text-xs font-medium"
+                style={{ backgroundColor: '#ef4444', color: '#fff' }}
+              >
+                Wipe All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {importMsg && (
         <div className="max-w-screen-xl mx-auto px-6 pt-4">
           <div
@@ -141,28 +317,37 @@ export default function App() {
         </div>
       )}
 
-      {/* Main content */}
-      <main className="max-w-screen-xl mx-auto px-6 py-8">
-        {activeTab === 'logger' && (
-          <PostLogger competitors={competitors} onAddPost={handleAddPost} />
-        )}
-        {activeTab === 'dashboard' && (
-          <Dashboard posts={filteredPosts} competitors={competitors} />
-        )}
-        {activeTab === 'comparison' && (
-          <ComparisonCharts posts={filteredPosts} competitors={competitors} />
-        )}
-        {activeTab === 'themes' && (
-          <ContentTheme posts={filteredPosts} competitors={competitors} />
-        )}
-        {activeTab === 'posts' && (
-          <TopPosts
-            posts={filteredPosts}
-            allCompetitors={competitors}
-            onDeletePost={handleDeletePost}
-          />
-        )}
-      </main>
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="text-sm" style={{ color: '#6b7280' }}>Loading...</div>
+        </div>
+      ) : (
+        <main className="max-w-screen-xl mx-auto px-6 py-8">
+          {activeTab === 'logger' && (
+            <PostLogger competitors={competitors} onAddPost={handleAddPost} />
+          )}
+          {activeTab === 'dashboard' && (
+            <Dashboard posts={filteredPosts} competitors={competitors} />
+          )}
+          {activeTab === 'comparison' && (
+            <ComparisonCharts posts={filteredPosts} competitors={competitors} />
+          )}
+          {activeTab === 'themes' && (
+            <ContentTheme posts={filteredPosts} competitors={competitors} />
+          )}
+          {activeTab === 'posts' && (
+            <TopPosts
+              posts={filteredPosts}
+              allCompetitors={competitors}
+              onDeletePost={handleDeletePost}
+              isLoggedIn={isLoggedIn}
+            />
+          )}
+          {activeTab === 'calendar' && (
+            <CalendarView posts={filteredPosts} competitors={competitors} />
+          )}
+        </main>
+      )}
     </div>
   )
 }
