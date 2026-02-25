@@ -1,4 +1,5 @@
 import { COMPETITOR_COLORS, COMPETITOR_TWITTER, CATEGORY_COLORS } from '../data/constants'
+import { useTwitterFollowers } from '../hooks/useTwitterData'
 
 function engagementRate(post) {
   if (!post.views) return 0
@@ -50,8 +51,16 @@ function XIcon() {
   )
 }
 
+function fmtFollowers(n) {
+  if (!n && n !== 0) return null
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`
+  return String(n)
+}
+
 function CompetitorCard({ competitor, posts, color }) {
   const twitterUrl = COMPETITOR_TWITTER[competitor]
+  const { metrics: twMetrics, loading: twLoading } = useTwitterFollowers(competitor)
   const avgER = posts.length
     ? (posts.reduce((s, p) => s + engagementRate(p), 0) / posts.length).toFixed(2)
     : '—'
@@ -94,6 +103,24 @@ function CompetitorCard({ competitor, posts, color }) {
           {posts.length} posts
         </span>
       </div>
+
+      {/* Twitter followers */}
+      {(twLoading || twMetrics) && (
+        <div className="flex items-center gap-3 px-3 py-2 rounded-lg" style={{ backgroundColor: '#0a0a12', border: '1px solid #1a1a2e' }}>
+          <XIcon />
+          {twLoading ? (
+            <span className="text-xs" style={{ color: '#4b5563' }}>Loading…</span>
+          ) : (
+            <>
+              <span className="text-sm font-bold text-white">{fmtFollowers(twMetrics.followers_count)}</span>
+              <span className="text-xs" style={{ color: '#4b5563' }}>followers</span>
+              <span className="ml-auto text-xs" style={{ color: '#4b5563' }}>
+                {fmtFollowers(twMetrics.tweet_count)} tweets
+              </span>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-2">
