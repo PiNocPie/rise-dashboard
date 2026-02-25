@@ -30,6 +30,8 @@ export default function App() {
   const [showLogin, setShowLogin] = useState(false)
   const [loginPassword, setLoginPassword] = useState('')
   const [loginError, setLoginError] = useState('')
+  const [syncing, setSyncing] = useState(false)
+  const [syncMsg, setSyncMsg] = useState(null)
   const importRef = useRef(null)
 
   const clearDates = () => { setDateFrom(''); setDateTo('') }
@@ -81,6 +83,20 @@ export default function App() {
   const handleDeletePost = async (id) => {
     const post = posts.find(p => p.id === id)
     if (post?._docId) await deleteDoc(doc(db, 'posts', post._docId))
+  }
+
+  const handleSync = async () => {
+    setSyncing(true)
+    setSyncMsg(null)
+    try {
+      const resp = await fetch('/api/sync')
+      const data = await resp.json()
+      setSyncMsg(data.ok ? `Sync done — ${data.added} added, ${data.skipped} skipped` : `Sync failed: ${data.error}`)
+    } catch {
+      setSyncMsg('Sync failed: network error')
+    }
+    setSyncing(false)
+    setTimeout(() => setSyncMsg(null), 5000)
   }
 
   const handleExport = () => {
@@ -163,6 +179,14 @@ export default function App() {
               </div>
               {isLoggedIn && (
                 <>
+                  <button
+                    onClick={handleSync}
+                    disabled={syncing}
+                    className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
+                    style={{ border: '1px solid #1a1a2e', color: syncing ? '#4b5563' : '#9ca3af', cursor: syncing ? 'not-allowed' : 'pointer' }}
+                  >
+                    {syncing ? '⟳ Syncing…' : '⟳ Sync Now'}
+                  </button>
                   <button
                     onClick={handleExport}
                     disabled={posts.length === 0}
@@ -249,6 +273,21 @@ export default function App() {
         </div>
       )}
 
+      {syncMsg && (
+        <div className="max-w-screen-xl mx-auto px-6 pt-4">
+          <div
+            className="px-4 py-3 rounded-lg text-sm"
+            style={{
+              backgroundColor: syncMsg.startsWith('Sync failed') ? 'rgba(239,68,68,0.1)' : 'rgba(0,230,118,0.1)',
+              border: `1px solid ${syncMsg.startsWith('Sync failed') ? 'rgba(239,68,68,0.3)' : 'rgba(0,230,118,0.3)'}`,
+              color: syncMsg.startsWith('Sync failed') ? '#f87171' : '#00e676',
+            }}
+          >
+            {syncMsg}
+          </div>
+        </div>
+      )}
+
       {importMsg && (
         <div className="max-w-screen-xl mx-auto px-6 pt-4">
           <div
@@ -271,7 +310,7 @@ export default function App() {
       ) : (
         <main className="max-w-screen-xl mx-auto px-6 py-8">
           {activeTab === 'updates' && (
-            <TwitterFeed posts={posts} competitors={competitors} isLoggedIn={isLoggedIn} />
+            <TwitterFeed posts={filteredPosts} competitors={competitors} isLoggedIn={isLoggedIn} />
           )}
           {activeTab === 'dashboard' && (
             <Dashboard posts={filteredPosts} competitors={competitors} />

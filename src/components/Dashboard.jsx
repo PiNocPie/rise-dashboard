@@ -1,4 +1,4 @@
-import { COMPETITOR_COLORS, COMPETITOR_TWITTER, CATEGORY_COLORS } from '../data/constants'
+import { COMPETITOR_COLORS, COMPETITOR_TWITTER, COMPETITOR_TWITTER_USERNAMES, CATEGORY_COLORS } from '../data/constants'
 import { useTwitterFollowers } from '../hooks/useTwitterData'
 
 function engagementRate(post) {
@@ -156,6 +156,71 @@ function CompetitorCard({ competitor, posts, color }) {
   )
 }
 
+function HotThisWeek({ posts }) {
+  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  const recent = posts
+    .filter(p => p.autoLogged && p.postText && new Date(p.postDate) >= cutoff)
+    .sort((a, b) => (b.views || 0) - (a.views || 0))
+    .slice(0, 5)
+
+  if (recent.length === 0) return null
+
+  return (
+    <div className="mb-8">
+      <div className="text-xs uppercase tracking-wider mb-3 font-medium" style={{ color: '#4b5563' }}>
+        🔥 Hot This Week — top tweets by views
+      </div>
+      <div className="flex flex-col gap-2">
+        {recent.map((post, i) => {
+          const color = COMPETITOR_COLORS[post.competitor] || '#6366f1'
+          const username = COMPETITOR_TWITTER_USERNAMES[post.competitor]
+          const tweetUrl = post.tweetId && username
+            ? `https://x.com/${username}/status/${post.tweetId}`
+            : null
+          const er = post.views
+            ? (((post.likes + post.retweets + post.replies) / post.views) * 100).toFixed(2)
+            : null
+          return (
+            <div
+              key={post.id || i}
+              className="flex items-start gap-3 px-4 py-3 rounded-xl"
+              style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e' }}
+            >
+              <span className="text-lg font-bold w-5 text-center flex-shrink-0" style={{ color: i === 0 ? '#00e676' : '#374151' }}>
+                {i + 1}
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                  <span className="text-xs font-bold text-white">{post.competitor}</span>
+                  <span className="text-xs" style={{ color: '#4b5563' }}>{new Date(post.postDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
+                </div>
+                <p className="text-xs leading-relaxed line-clamp-2" style={{ color: '#9ca3af' }}>{post.postText}</p>
+              </div>
+              <div className="flex flex-col items-end gap-1 flex-shrink-0 text-right">
+                <span className="text-sm font-bold text-white">{fmtNum(post.views)}</span>
+                <span className="text-xs" style={{ color: '#4b5563' }}>views</span>
+                {er && <span className="text-xs font-medium" style={{ color: '#00e676' }}>{er}% ER</span>}
+              </div>
+              {tweetUrl && (
+                <a
+                  href={tweetUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs px-2 py-1 rounded-lg flex-shrink-0 self-center"
+                  style={{ backgroundColor: '#1a1a2e', color: '#6b7280', border: '1px solid #2a2a3e' }}
+                >
+                  ↗
+                </a>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function GlobalStat({ label, value, sub, accent }) {
   return (
     <div
@@ -183,6 +248,15 @@ export default function Dashboard({ posts, competitors }) {
     posts.forEach(p => { byCount[p.competitor] = (byCount[p.competitor] || 0) + 1 })
     return Object.entries(byCount).sort((a, b) => b[1] - a[1])[0]?.[0] || '—'
   })()
+  const mostViral = (() => {
+    if (!totalPosts) return '—'
+    const top = posts.filter(p => p.views).sort((a, b) => b.views - a.views)[0]
+    return top ? `${fmtNum(top.views)} views` : '—'
+  })()
+  const viralCompetitor = (() => {
+    const top = posts.filter(p => p.views).sort((a, b) => b.views - a.views)[0]
+    return top?.competitor || ''
+  })()
 
   return (
     <div>
@@ -196,12 +270,15 @@ export default function Dashboard({ posts, competitors }) {
       </div>
 
       {/* Global stats bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <GlobalStat label="Total Posts" value={totalPosts} />
         <GlobalStat label="Avg Views" value={avgViews} />
         <GlobalStat label="Avg Eng. Rate" value={`${avgER}%`} accent="#00e676" />
-        <GlobalStat label="Most Active" value={topCompetitor} sub="by post count" />
+        <GlobalStat label="Most Viral Tweet" value={mostViral} sub={viralCompetitor} accent="#f59e0b" />
       </div>
+
+      {/* Hot this week */}
+      <HotThisWeek posts={posts} />
 
       {/* Competitor cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
