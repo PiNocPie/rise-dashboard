@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { db } from './firebase'
-import { collection, addDoc, deleteDoc, doc, onSnapshot } from 'firebase/firestore'
+import { collection, addDoc, deleteDoc, doc, onSnapshot, writeBatch } from 'firebase/firestore'
 import { RISE_COMPETITORS } from './data/constants'
 import { exportToCSV, importFromCSV } from './utils/csvUtils'
-import PostLogger from './components/PostLogger'
+import TwitterFeed from './components/TwitterFeed'
 import Dashboard from './components/Dashboard'
 import ComparisonCharts from './components/ComparisonCharts'
 import ContentTheme from './components/ContentTheme'
@@ -12,7 +12,7 @@ import CalendarView from './components/CalendarView'
 
 const TABS = [
   { id: 'dashboard', label: 'Overview' },
-  { id: 'logger', label: 'Log Post' },
+  { id: 'updates', label: 'Updates' },
   { id: 'comparison', label: 'Comparisons' },
   { id: 'themes', label: 'Content Themes' },
   { id: 'posts', label: 'All Posts' },
@@ -30,7 +30,6 @@ export default function App() {
   const [showLogin, setShowLogin] = useState(false)
   const [loginPassword, setLoginPassword] = useState('')
   const [loginError, setLoginError] = useState('')
-  const [pendingTab, setPendingTab] = useState(null)
   const importRef = useRef(null)
 
   const clearDates = () => { setDateFrom(''); setDateTo('') }
@@ -60,14 +59,7 @@ export default function App() {
   })
 
   const handleTabClick = (tabId) => {
-    if (tabId === 'logger' && !isLoggedIn) {
-      setPendingTab(tabId)
-      setShowLogin(true)
-      setLoginPassword('')
-      setLoginError('')
-    } else {
-      setActiveTab(tabId)
-    }
+    setActiveTab(tabId)
   }
 
   const handleLogin = () => {
@@ -77,7 +69,6 @@ export default function App() {
     }
     setIsLoggedIn(true)
     setShowLogin(false)
-    if (pendingTab) { setActiveTab(pendingTab); setPendingTab(null) }
     setLoginPassword('')
     setLoginError('')
   }
@@ -279,8 +270,8 @@ export default function App() {
         </div>
       ) : (
         <main className="max-w-screen-xl mx-auto px-6 py-8">
-          {activeTab === 'logger' && (
-            <PostLogger competitors={competitors} onAddPost={handleAddPost} />
+          {activeTab === 'updates' && (
+            <TwitterFeed posts={posts} competitors={competitors} isLoggedIn={isLoggedIn} />
           )}
           {activeTab === 'dashboard' && (
             <Dashboard posts={filteredPosts} competitors={competitors} />
