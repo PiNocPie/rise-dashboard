@@ -122,5 +122,94 @@ export default async function handler(req, res) {
   }
 
   console.log('Tweet sync complete:', results)
+
+  // Send Slack digest if webhook is configured
+  const slackWebhook = process.env.SLACK_WEBHOOK_URL
+  if (slackWebhook && results.added > 0) {
+    try {
+      // Fetch top 3 tweets from last 24h by views
+      const snapshot = await db.collection('posts')
+        .where('autoLogged', '==', true)
+        .where('syncedAt', '>=', startTime)
+        .orderBy('syncedAt')
+        .get()
+
+      const newTweets = snapshot.docs
+        .map(d => d.data())
+        .filter(p => p.views > 0)
+        .sort((a, b) => b.views - a.views)
+        .slice(0, 3)
+
+      function fmtNum(n) {
+        if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
+        if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`
+        return String(n)
+      }
+
+      const topTweetBlocks = newTweets.map((p, i) => {
+        const username = COMPETITOR_USERNAMES[p.competitor]
+        const tweetUrl = username ? `https://x.com/${username}/status/${p.tweetId}` : null
+        const er = p.views ? (((p.likes + p.retweets + p.replies) / p.views) * 100).toFixed(2) : null
+        const excerpt = p.postText?.length > 120 ? p.postText.slice(0, 120) + '…' : p.postText
+        return {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `*${i + 1}. ${p.competitor}* · _${p.category}_\n>${excerpt}\n👁 ${fmtNum(p.views)} views · ❤️ ${fmtNum(p.likes)} · 🔁 ${fmtNum(p.retweets)}${er ? ` · *ER: ${er}%*` : ''}${tweetUrl ? `\n<${tweetUrl}|View Tweet →>` : ''}`,
+          },
+        }
+      })
+
+      // Count by competitor
+      const allNew = snapshot.docs.map(d => d.data())
+      const byCmp = {}
+      allNew.forEach(p => { byCmp[p.competitor] = (byCmp[p.competitor] || 0) + 1 })
+      const mostActive = Object.entries(byCmp).sort((a, b) => b[1] - a[1])[0]
+
+      const date = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+
+      await fetch(slackWebhook, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blocks: [
+            {
+              type: 'header',
+              text: { type: 'plain_text', text: '🤖 RISE Intel — Daily Competitor Update', emoji: true },
+            },
+            {
+              type: 'context',
+              elements: [{ type: 'mrkdwn', text: `${date} · ${results.added} new tweets synced across 10 competitors` }],
+            },
+            { type: 'divider' },
+            {
+              type: 'section',
+              text: { type: 'mrkdwn', text: '*🔥 Top Tweets Yesterday*' },
+            },
+            ...topTweetBlocks,
+            { type: 'divider' },
+            {
+              type: 'section',
+              fields: [
+                { type: 'mrkdwn', text: `*New tweets:* ${results.added}` },
+                { type: 'mrkdwn', text: mostActive ? `*Most active:* ${mostActive[0]} (${mostActive[1]} tweets)` : ' ' },
+              ],
+            },
+            {
+              type: 'actions',
+              elements: [{
+                type: 'button',
+                text: { type: 'plain_text', text: '👉 Open Dashboard', emoji: true },
+                url: 'https://rise-intel.vercel.app',
+              }],
+            },
+          ],
+        }),
+      })
+    } catch (err) {
+      console.error('Slack notify failed:', err.message)
+    }
+  }
+
   res.json({ ok: true, ...results })
 }
