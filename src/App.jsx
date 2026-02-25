@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { db } from './firebase'
-import { collection, addDoc, deleteDoc, doc, onSnapshot, writeBatch } from 'firebase/firestore'
+import { collection, addDoc, deleteDoc, doc, onSnapshot } from 'firebase/firestore'
 import { RISE_COMPETITORS } from './data/constants'
 import { exportToCSV, importFromCSV } from './utils/csvUtils'
 import PostLogger from './components/PostLogger'
@@ -19,29 +19,21 @@ const TABS = [
   { id: 'calendar', label: 'Calendar' },
 ]
 
-const WEEK_OPTIONS = [
-  { label: 'All time', value: 0 },
-  { label: 'Last 1 week', value: 1 },
-  { label: 'Last 2 weeks', value: 2 },
-  { label: 'Last 4 weeks', value: 4 },
-  { label: 'Last 8 weeks', value: 8 },
-]
-
 export default function App() {
   const [posts, setPosts] = useState([])
   const [activeTab, setActiveTab] = useState('dashboard')
   const [importMsg, setImportMsg] = useState(null)
-  const [weekFilter, setWeekFilter] = useState(0)
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const [loading, setLoading] = useState(true)
-  const [showWipe, setShowWipe] = useState(false)
-  const [wipePassword, setWipePassword] = useState('')
-  const [wipeError, setWipeError] = useState('')
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [showLogin, setShowLogin] = useState(false)
   const [loginPassword, setLoginPassword] = useState('')
   const [loginError, setLoginError] = useState('')
   const [pendingTab, setPendingTab] = useState(null)
   const importRef = useRef(null)
+
+  const clearDates = () => { setDateFrom(''); setDateTo('') }
 
   const competitors = RISE_COMPETITORS
 
@@ -57,11 +49,14 @@ export default function App() {
 
   const filteredPosts = posts.filter(p => {
     if (!competitors.includes(p.competitor)) return false
-    if (weekFilter === 0) return true
     const postDate = new Date(p.postDate)
-    const cutoff = new Date()
-    cutoff.setDate(cutoff.getDate() - weekFilter * 7)
-    return postDate >= cutoff
+    if (dateFrom && postDate < new Date(dateFrom)) return false
+    if (dateTo) {
+      const to = new Date(dateTo)
+      to.setHours(23, 59, 59, 999)
+      if (postDate > to) return false
+    }
+    return true
   })
 
   const handleTabClick = (tabId) => {
@@ -95,21 +90,6 @@ export default function App() {
   const handleDeletePost = async (id) => {
     const post = posts.find(p => p.id === id)
     if (post?._docId) await deleteDoc(doc(db, 'posts', post._docId))
-  }
-
-  const handleWipe = async () => {
-    if (wipePassword !== 'deeznuts69@') {
-      setWipeError('Wrong password')
-      return
-    }
-    const batch = writeBatch(db)
-    posts.forEach(p => {
-      if (p._docId) batch.delete(doc(db, 'posts', p._docId))
-    })
-    await batch.commit()
-    setShowWipe(false)
-    setWipePassword('')
-    setWipeError('')
   }
 
   const handleExport = () => {
@@ -163,16 +143,33 @@ export default function App() {
             </div>
 
             <div className="flex items-center gap-2">
-              <select
-                value={weekFilter}
-                onChange={e => setWeekFilter(Number(e.target.value))}
-                className="px-3 py-1.5 text-xs font-medium rounded-lg"
-                style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e', color: '#9ca3af', cursor: 'pointer' }}
-              >
-                {WEEK_OPTIONS.map(o => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
+              {/* Date range filter */}
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={e => setDateFrom(e.target.value)}
+                  className="px-2 py-1.5 text-xs rounded-lg"
+                  style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e', color: dateFrom ? '#e2e8f0' : '#4b5563', cursor: 'pointer' }}
+                />
+                <span className="text-xs" style={{ color: '#4b5563' }}>→</span>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={e => setDateTo(e.target.value)}
+                  className="px-2 py-1.5 text-xs rounded-lg"
+                  style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e', color: dateTo ? '#e2e8f0' : '#4b5563', cursor: 'pointer' }}
+                />
+                {(dateFrom || dateTo) && (
+                  <button
+                    onClick={clearDates}
+                    className="px-2 py-1.5 text-xs rounded-lg"
+                    style={{ border: '1px solid #1a1a2e', color: '#6b7280', cursor: 'pointer' }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
               {isLoggedIn && (
                 <>
                   <button
@@ -202,13 +199,6 @@ export default function App() {
                 style={{ border: '1px solid #1a1a2e', color: isLoggedIn ? '#00e676' : '#9ca3af', cursor: 'pointer' }}
               >
                 {isLoggedIn ? '🔓 Logout' : '🔒 Login'}
-              </button>
-              <button
-                onClick={() => { setShowWipe(true); setWipePassword(''); setWipeError('') }}
-                className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
-                style={{ border: '1px solid #3a1a1a', color: '#ef4444', cursor: 'pointer' }}
-              >
-                🗑 Wipe Data
               </button>
             </div>
           </div>
@@ -262,40 +252,6 @@ export default function App() {
                 style={{ backgroundColor: '#00e676', color: '#000' }}
               >
                 Login
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showWipe && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
-          <div className="rounded-xl p-6 w-80 flex flex-col gap-4" style={{ backgroundColor: '#11111e', border: '1px solid #2a1a1a' }}>
-            <h3 className="text-white font-bold">Wipe All Data</h3>
-            <p className="text-xs" style={{ color: '#6b7280' }}>This will permanently delete all posts. Enter password to confirm.</p>
-            <input
-              type="password"
-              value={wipePassword}
-              onChange={e => { setWipePassword(e.target.value); setWipeError('') }}
-              placeholder="Password"
-              className="px-3 py-2 rounded-lg text-sm"
-              style={{ backgroundColor: '#0d0d1a', border: '1px solid #1a1a2e', color: '#e2e8f0', outline: 'none' }}
-            />
-            {wipeError && <p className="text-xs" style={{ color: '#ef4444' }}>{wipeError}</p>}
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowWipe(false)}
-                className="flex-1 py-2 rounded-lg text-xs font-medium"
-                style={{ border: '1px solid #1a1a2e', color: '#6b7280' }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleWipe}
-                className="flex-1 py-2 rounded-lg text-xs font-medium"
-                style={{ backgroundColor: '#ef4444', color: '#fff' }}
-              >
-                Wipe All
               </button>
             </div>
           </div>
