@@ -25,6 +25,25 @@ function getDb() {
   return getFirestore()
 }
 
+function classifyTweet(text) {
+  const t = text.toLowerCase()
+
+  if (/🧵|thread|\b1\/\d/.test(t)) return 'Thread'
+  if (/\bvideo\b|\bwatch\b|\byoutube\b|youtu\.be|\bstream\b|\bclip\b/.test(t)) return 'Video'
+  if (/partner|collab|integrat|excited to (work|partner|welcom)|teaming up|team up/.test(t)) return 'Partnership'
+  if (/airdrop|points|reward|earn|claim|incentiv|season/.test(t)) return 'Points/Airdrop'
+  if (/launch|ship|deploy|release|update|v\d+\.\d|mainnet|testnet|new feature/.test(t)) return 'Product Update'
+  if (/how to|explain|breakdown|deep.?dive|learn|educat|blog|article/.test(t)) return 'Technical/Educational'
+  if (/meme|lol|lmao|😂|🤣|gm |wagmi|ngmi|cope |ser |fren /.test(t)) return 'Meme/Engagement Bait'
+  if (/community|event|hackathon|grant|bounty|meetup/.test(t)) return 'Community'
+  if (/read more|full article|longform|research|report/.test(t)) return 'Article/Longform'
+
+  // Yap = long personal opinion with no links
+  if (text.length > 220 && !text.includes('http')) return 'Yap'
+
+  return 'Other'
+}
+
 async function fetchTweets(username, startTime, endTime) {
   const params = new URLSearchParams({
     query: `from:${username} -is:retweet`,
@@ -84,7 +103,7 @@ export default async function handler(req, res) {
           tweetId: tweet.id,
           competitor,
           postDate: tweet.created_at,
-          category: 'Other',
+          category: classifyTweet(tweet.text),
           views: m.impression_count ?? 0,
           likes: m.like_count ?? 0,
           retweets: m.retweet_count ?? 0,

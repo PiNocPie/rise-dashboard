@@ -13,6 +13,8 @@ export const CONTENT_CATEGORIES = [
   'Meme/Engagement Bait',
   'Founder Post',
   'Thread',
+  'Yap',
+  'Video',
   'Other',
 ]
 
@@ -26,6 +28,8 @@ export const CATEGORY_COLORS = {
   'Meme/Engagement Bait': '#ec4899',
   'Founder Post': '#f97316',
   'Thread': '#14b8a6',
+  'Yap': '#fb7185',
+  'Video': '#22d3ee',
   'Other': '#4b5563',
 }
 
