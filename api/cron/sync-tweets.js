@@ -177,9 +177,10 @@ export default async function handler(req, res) {
         const username = COMPETITOR_USERNAMES[p.competitor]
         const tweetUrl = username ? `https://x.com/${username}/status/${p.tweetId}` : null
         const er = p.views ? (erVal(p) * 100).toFixed(2) : null
-        const excerpt = p.postText?.length > 160 ? p.postText.slice(0, 160) + '…' : p.postText
+        // Show full tweet text — replace newlines with space to keep Slack quote single-block
+        const fullText = (p.postText || '').replace(/\n+/g, ' ')
         let s = `*${i + 1}. ${p.competitor}* · _${p.category}_\n`
-        s += `> ${excerpt}\n`
+        s += `> ${fullText}\n`
         s += `👁 ${fmtNum(p.views)} · ❤️ ${fmtNum(p.likes)} · 🔁 ${fmtNum(p.retweets)}`
         if (er) s += ` · *ER: ${er}%*`
         if (tweetUrl) s += `\n<${tweetUrl}|View Tweet →>`
@@ -201,6 +202,22 @@ export default async function handler(req, res) {
       const active = ALL_ACCOUNTS.filter(c => postedSet.has(c))
       const silent = ALL_ACCOUNTS.filter(c => !postedSet.has(c))
 
+      // Per-competitor highlight: post count + top category + best tweet views
+      const competitorHighlights = active.map(name => {
+        const posts = recent.filter(p => p.competitor === name)
+        const best = [...posts].sort((a, b) => (b.views || 0) - (a.views || 0))[0]
+        const categories = posts.map(p => p.category).filter(Boolean)
+        const topCat = categories.length
+          ? [...categories.reduce((m, c) => m.set(c, (m.get(c) || 0) + 1), new Map())]
+              .sort((a, b) => b[1] - a[1])[0][0]
+          : '—'
+        const username = COMPETITOR_USERNAMES[name]
+        const bestUrl = best?.tweetId && username ? `https://x.com/${username}/status/${best.tweetId}` : null
+        const bestViews = best ? ` · top: ${fmtNum(best.views || 0)} views` : ''
+        const bestLink = bestUrl ? ` · <${bestUrl}|best tweet>` : ''
+        return `• *${name}* — ${posts.length} post${posts.length > 1 ? 's' : ''} · _${topCat}_${bestViews}${bestLink}`
+      })
+
       // Viral — top 3 by views
       const viral = [...recent].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 3)
       const viralIds = new Set(viral.map(p => p.tweetId))
@@ -221,11 +238,13 @@ export default async function handler(req, res) {
 
       let text = `🤖 *RISE Intel — Daily Digest · ${date}*\n\n`
 
-      // Section 1: Activity summary
-      text += `📊 *Activity Summary*\n`
-      text += `${active.length} of ${ALL_ACCOUNTS.length} posted in the last 24h\n`
-      if (active.length) text += `*Active:* ${active.join(' · ')}\n`
-      if (silent.length) text += `*Silent:* ${silent.join(' · ')}\n`
+      // Section 1: Activity summary + per-competitor highlights
+      text += `📊 *Activity Summary* — ${active.length} of ${ALL_ACCOUNTS.length} posted\n`
+      if (silent.length) text += `_Silent: ${silent.join(', ')}_\n`
+      text += '\n'
+      if (competitorHighlights.length) {
+        text += competitorHighlights.join('\n') + '\n'
+      }
       text += `${DIV}\n`
 
       // Section 2: Viral
