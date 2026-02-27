@@ -1,0 +1,37 @@
+// Hit this endpoint to immediately test your Slack webhook
+export default async function handler(req, res) {
+  const webhook = process.env.SLACK_WEBHOOK_URL
+  if (!webhook) return res.status(500).json({ error: 'SLACK_WEBHOOK_URL not set in env vars' })
+
+  const resp = await fetch(webhook, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      blocks: [
+        {
+          type: 'header',
+          text: { type: 'plain_text', text: '🤖 RISE Intel — Slack test', emoji: true },
+        },
+        {
+          type: 'section',
+          text: { type: 'mrkdwn', text: 'If you can see this, your Slack webhook is working correctly. Daily digests will post here every morning at 8am Vietnam time.' },
+        },
+        {
+          type: 'actions',
+          elements: [{
+            type: 'button',
+            text: { type: 'plain_text', text: '👉 Open Dashboard', emoji: true },
+            url: 'https://rise-dashboard-bice.vercel.app',
+          }],
+        },
+      ],
+    }),
+  })
+
+  const text = await resp.text()
+  if (resp.ok) {
+    res.json({ ok: true, message: 'Test message sent to Slack' })
+  } else {
+    res.status(500).json({ ok: false, slackStatus: resp.status, slackResponse: text })
+  }
+}
