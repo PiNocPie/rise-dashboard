@@ -10,6 +10,7 @@ import ContentTheme from './components/ContentTheme'
 import TopPosts from './components/TopPosts'
 import CalendarView from './components/CalendarView'
 import ActivityChart from './components/ActivityChart'
+import DiscordDashboard from './components/DiscordDashboard'
 
 const TABS = [
   { id: 'dashboard', label: 'Overview' },
@@ -22,6 +23,7 @@ const TABS = [
 ]
 
 export default function App() {
+  const [platform, setPlatform] = useState('twitter')   // 'twitter' | 'discord'
   const [posts, setPosts] = useState([])
   const [activeTab, setActiveTab] = useState('dashboard')
   const [importMsg, setImportMsg] = useState(null)
@@ -34,6 +36,8 @@ export default function App() {
   const [loginError, setLoginError] = useState('')
   const [syncing, setSyncing] = useState(false)
   const [syncMsg, setSyncMsg] = useState(null)
+  const [discordRefreshing, setDiscordRefreshing] = useState(false)
+  const [discordSyncMsg, setDiscordSyncMsg] = useState(null)
   const importRef = useRef(null)
 
   const clearDates = () => { setDateFrom(''); setDateTo('') }
@@ -101,6 +105,27 @@ export default function App() {
     setTimeout(() => setSyncMsg(null), 5000)
   }
 
+  const handleDiscordRefresh = async () => {
+    setDiscordRefreshing(true)
+    setDiscordSyncMsg(null)
+    try {
+      const resp = await fetch('/api/discord-sync', { method: 'POST' })
+      const data = await resp.json()
+      if (data.ok) {
+        const summary = data.results
+          .map(r => r.ok ? `${r.server}: ${r.members} members, ${r.messages24h} msgs` : `${r.server}: failed`)
+          .join(' · ')
+        setDiscordSyncMsg(`Discord synced — ${summary}`)
+      } else {
+        setDiscordSyncMsg(`Discord sync failed: ${data.error}`)
+      }
+    } catch {
+      setDiscordSyncMsg('Discord sync failed: network error')
+    }
+    setDiscordRefreshing(false)
+    setTimeout(() => setDiscordSyncMsg(null), 6000)
+  }
+
   const handleExport = () => {
     if (posts.length === 0) return
     exportToCSV(posts)
@@ -152,64 +177,98 @@ export default function App() {
             </div>
 
             <div className="flex items-center gap-2">
-              {/* Date range filter */}
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="date"
-                  value={dateFrom}
-                  onChange={e => setDateFrom(e.target.value)}
-                  className="px-2 py-1.5 text-xs rounded-lg"
-                  style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e', color: dateFrom ? '#e2e8f0' : '#4b5563', cursor: 'pointer' }}
-                />
-                <span className="text-xs" style={{ color: '#4b5563' }}>→</span>
-                <input
-                  type="date"
-                  value={dateTo}
-                  onChange={e => setDateTo(e.target.value)}
-                  className="px-2 py-1.5 text-xs rounded-lg"
-                  style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e', color: dateTo ? '#e2e8f0' : '#4b5563', cursor: 'pointer' }}
-                />
-                {(dateFrom || dateTo) && (
-                  <button
-                    onClick={clearDates}
-                    className="px-2 py-1.5 text-xs rounded-lg"
-                    style={{ border: '1px solid #1a1a2e', color: '#6b7280', cursor: 'pointer' }}
-                  >
-                    ✕
-                  </button>
-                )}
+              {/* Platform toggle */}
+              <div
+                className="flex items-center gap-0.5 p-0.5 rounded-lg"
+                style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e' }}
+              >
+                <button
+                  onClick={() => setPlatform('twitter')}
+                  className="px-3 py-1.5 text-xs font-medium rounded transition-all"
+                  style={
+                    platform === 'twitter'
+                      ? { backgroundColor: '#00e676', color: '#000' }
+                      : { color: '#6b7280' }
+                  }
+                >
+                  𝕏 Twitter
+                </button>
+                <button
+                  onClick={() => setPlatform('discord')}
+                  className="px-3 py-1.5 text-xs font-medium rounded transition-all"
+                  style={
+                    platform === 'discord'
+                      ? { backgroundColor: '#5865F2', color: '#fff' }
+                      : { color: '#6b7280' }
+                  }
+                >
+                  💬 Discord
+                </button>
               </div>
-              {isLoggedIn && (
+
+              {/* Twitter-specific controls */}
+              {platform === 'twitter' && (
                 <>
-                  <button
-                    onClick={handleSync}
-                    disabled={syncing}
-                    className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
-                    style={{ border: '1px solid #1a1a2e', color: syncing ? '#4b5563' : '#9ca3af', cursor: syncing ? 'not-allowed' : 'pointer' }}
-                  >
-                    {syncing ? '⟳ Syncing…' : '⟳ Sync Now'}
-                  </button>
-                  <button
-                    onClick={handleExport}
-                    disabled={posts.length === 0}
-                    className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
-                    style={{
-                      border: '1px solid #1a1a2e',
-                      color: posts.length === 0 ? '#374151' : '#9ca3af',
-                      cursor: posts.length === 0 ? 'not-allowed' : 'pointer',
-                    }}
-                  >
-                    ↓ Export CSV
-                  </button>
-                  <label
-                    className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer"
-                    style={{ border: '1px solid #1a1a2e', color: '#9ca3af' }}
-                  >
-                    ↑ Import CSV
-                    <input ref={importRef} type="file" accept=".csv" className="hidden" onChange={handleImport} />
-                  </label>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="date"
+                      value={dateFrom}
+                      onChange={e => setDateFrom(e.target.value)}
+                      className="px-2 py-1.5 text-xs rounded-lg"
+                      style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e', color: dateFrom ? '#e2e8f0' : '#4b5563', cursor: 'pointer' }}
+                    />
+                    <span className="text-xs" style={{ color: '#4b5563' }}>→</span>
+                    <input
+                      type="date"
+                      value={dateTo}
+                      onChange={e => setDateTo(e.target.value)}
+                      className="px-2 py-1.5 text-xs rounded-lg"
+                      style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e', color: dateTo ? '#e2e8f0' : '#4b5563', cursor: 'pointer' }}
+                    />
+                    {(dateFrom || dateTo) && (
+                      <button
+                        onClick={clearDates}
+                        className="px-2 py-1.5 text-xs rounded-lg"
+                        style={{ border: '1px solid #1a1a2e', color: '#6b7280', cursor: 'pointer' }}
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                  {isLoggedIn && (
+                    <>
+                      <button
+                        onClick={handleSync}
+                        disabled={syncing}
+                        className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
+                        style={{ border: '1px solid #1a1a2e', color: syncing ? '#4b5563' : '#9ca3af', cursor: syncing ? 'not-allowed' : 'pointer' }}
+                      >
+                        {syncing ? '⟳ Syncing…' : '⟳ Sync Now'}
+                      </button>
+                      <button
+                        onClick={handleExport}
+                        disabled={posts.length === 0}
+                        className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
+                        style={{
+                          border: '1px solid #1a1a2e',
+                          color: posts.length === 0 ? '#374151' : '#9ca3af',
+                          cursor: posts.length === 0 ? 'not-allowed' : 'pointer',
+                        }}
+                      >
+                        ↓ Export CSV
+                      </button>
+                      <label
+                        className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer"
+                        style={{ border: '1px solid #1a1a2e', color: '#9ca3af' }}
+                      >
+                        ↑ Import CSV
+                        <input ref={importRef} type="file" accept=".csv" className="hidden" onChange={handleImport} />
+                      </label>
+                    </>
+                  )}
                 </>
               )}
+
               <button
                 onClick={() => isLoggedIn ? setIsLoggedIn(false) : (setShowLogin(true), setLoginPassword(''), setLoginError(''))}
                 className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
@@ -220,22 +279,24 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex">
-            {TABS.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => handleTabClick(tab.id)}
-                className="px-5 py-3 text-sm font-medium border-b-2 transition-all"
-                style={
-                  activeTab === tab.id
-                    ? { borderColor: '#00e676', color: '#00e676' }
-                    : { borderColor: 'transparent', color: '#6b7280' }
-                }
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          {platform === 'twitter' && (
+            <div className="flex">
+              {TABS.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => handleTabClick(tab.id)}
+                  className="px-5 py-3 text-sm font-medium border-b-2 transition-all"
+                  style={
+                    activeTab === tab.id
+                      ? { borderColor: '#00e676', color: '#00e676' }
+                      : { borderColor: 'transparent', color: '#6b7280' }
+                  }
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </header>
 
@@ -290,6 +351,21 @@ export default function App() {
         </div>
       )}
 
+      {discordSyncMsg && (
+        <div className="max-w-screen-xl mx-auto px-6 pt-4">
+          <div
+            className="px-4 py-3 rounded-lg text-sm"
+            style={{
+              backgroundColor: discordSyncMsg.startsWith('Discord sync failed') ? 'rgba(239,68,68,0.1)' : 'rgba(88,101,242,0.1)',
+              border: `1px solid ${discordSyncMsg.startsWith('Discord sync failed') ? 'rgba(239,68,68,0.3)' : 'rgba(88,101,242,0.3)'}`,
+              color: discordSyncMsg.startsWith('Discord sync failed') ? '#f87171' : '#818cf8',
+            }}
+          >
+            {discordSyncMsg}
+          </div>
+        </div>
+      )}
+
       {importMsg && (
         <div className="max-w-screen-xl mx-auto px-6 pt-4">
           <div
@@ -305,7 +381,15 @@ export default function App() {
         </div>
       )}
 
-      {loading ? (
+      {platform === 'discord' ? (
+        <main className="max-w-screen-xl mx-auto px-6 py-8">
+          <DiscordDashboard
+            isLoggedIn={isLoggedIn}
+            onRefresh={handleDiscordRefresh}
+            refreshing={discordRefreshing}
+          />
+        </main>
+      ) : loading ? (
         <div className="flex items-center justify-center h-64">
           <div className="text-sm" style={{ color: '#6b7280' }}>Loading...</div>
         </div>

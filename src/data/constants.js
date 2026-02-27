@@ -69,6 +69,15 @@ export const COMPETITOR_TWITTER_USERNAMES = {
   '01 Exchange': 'o1_exchange',
 }
 
+// Discord server config — add guild IDs to Vercel env vars:
+//   DISCORD_BOT_TOKEN      — your bot's token
+//   DISCORD_RISE_GUILD_ID  — right-click RISE server → Copy Server ID
+//   DISCORD_RISEX_GUILD_ID — right-click RISEx server → Copy Server ID
+export const DISCORD_SERVERS = [
+  { key: 'RISE',  label: 'RISE',  envKey: 'DISCORD_RISE_GUILD_ID' },
+  { key: 'RISEx', label: 'RISEx', envKey: 'DISCORD_RISEX_GUILD_ID' },
+]
+
 // Our own accounts — shown in Activity tab for self-benchmarking
 export const OWN_ACCOUNTS = ['RISE', 'RISEx']
 
