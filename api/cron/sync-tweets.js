@@ -8,13 +8,15 @@ const COMPETITOR_USERNAMES = {
   MegaETH: 'megaeth',
   Monad: 'monad',
   N1: 'n1chain',
-  Hyperliquid: 'HyperliquidX',
   Ink: 'inkonchain',
   Starknet: 'Starknet',
   Base: 'base',
   Arbitrum: 'arbitrum',
   Nado: 'Nadohq',
   '01 Exchange': 'o1_exchange',
+  // Own accounts — synced for self-benchmarking
+  RISE: 'risechain',
+  RISEx: 'risextrade',
 }
 
 function getDb() {

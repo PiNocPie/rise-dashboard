@@ -1,5 +1,5 @@
 export const RISE_COMPETITORS = [
-  'MegaETH', 'Monad', 'N1', 'Hyperliquid', 'Ink',
+  'MegaETH', 'Monad', 'N1', 'Ink',
   'Starknet', 'Base', 'Arbitrum', 'Nado', '01 Exchange',
 ]
 
@@ -37,7 +37,6 @@ export const COMPETITOR_COLORS = {
   MegaETH: '#6366f1',
   Monad: '#a855f7',
   N1: '#10b981',
-  Hyperliquid: '#3b82f6',
   Ink: '#f59e0b',
   Starknet: '#7c3aed',
   Base: '#0052ff',
@@ -50,7 +49,6 @@ export const COMPETITOR_TWITTER = {
   MegaETH: 'https://x.com/megaeth',
   Monad: 'https://x.com/monad',
   N1: 'https://x.com/n1chain',
-  Hyperliquid: 'https://x.com/HyperliquidX',
   Ink: 'https://x.com/inkonchain',
   Starknet: 'https://x.com/Starknet',
   Base: 'https://x.com/base',
@@ -63,11 +61,28 @@ export const COMPETITOR_TWITTER_USERNAMES = {
   MegaETH: 'megaeth',
   Monad: 'monad',
   N1: 'n1chain',
-  Hyperliquid: 'HyperliquidX',
   Ink: 'inkonchain',
   Starknet: 'Starknet',
   Base: 'base',
   Arbitrum: 'arbitrum',
   Nado: 'Nadohq',
   '01 Exchange': 'o1_exchange',
+}
+
+// Our own accounts — shown in Activity tab for self-benchmarking
+export const OWN_ACCOUNTS = ['RISE', 'RISEx']
+
+export const OWN_ACCOUNT_COLORS = {
+  RISE: '#00e676',
+  RISEx: '#6366f1',
+}
+
+export const OWN_ACCOUNT_TWITTER = {
+  RISE: 'https://x.com/risechain',
+  RISEx: 'https://x.com/risextrade',
+}
+
+export const OWN_ACCOUNT_USERNAMES = {
+  RISE: 'risechain',
+  RISEx: 'risextrade',
 }

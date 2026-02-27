@@ -9,9 +9,11 @@ import ComparisonCharts from './components/ComparisonCharts'
 import ContentTheme from './components/ContentTheme'
 import TopPosts from './components/TopPosts'
 import CalendarView from './components/CalendarView'
+import ActivityChart from './components/ActivityChart'
 
 const TABS = [
   { id: 'dashboard', label: 'Overview' },
+  { id: 'activity', label: 'Activity' },
   { id: 'updates', label: 'Updates' },
   { id: 'comparison', label: 'Comparisons' },
   { id: 'themes', label: 'Content Themes' },
@@ -130,8 +132,8 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#0a0a12', color: '#e2e8f0' }}>
-      <header style={{ backgroundColor: '#0d0d1a', borderBottom: '1px solid #1a1a2e' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#000', color: '#e2e8f0' }}>
+      <header style={{ backgroundColor: '#050505', borderBottom: '1px solid #111' }}>
         <div className="max-w-screen-xl mx-auto px-6">
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center gap-3">
@@ -309,6 +311,9 @@ export default function App() {
         </div>
       ) : (
         <main className="max-w-screen-xl mx-auto px-6 py-8">
+          {activeTab === 'activity' && (
+            <ActivityChart posts={posts} competitors={competitors} />
+          )}
           {activeTab === 'updates' && (
             <TwitterFeed posts={filteredPosts} competitors={competitors} isLoggedIn={isLoggedIn} />
           )}
