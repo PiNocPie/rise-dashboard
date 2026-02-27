@@ -165,72 +165,55 @@ export default async function handler(req, res) {
       function fmtNum(n) {
         if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
         if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`
-        return String(n)
+        return String(n ?? 0)
       }
 
-      const top3 = [...newTweets]
-        .sort((a, b) => b.views - a.views)
+      // Pull top 3 tweets from last 48h directly from Firestore (no composite index needed)
+      const allSnapshot = await db.collection('posts').get()
+      const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
+      const top3 = allSnapshot.docs
+        .map(d => d.data())
+        .filter(p => p.autoLogged && p.postDate >= cutoff && p.postText && !p.postText.trim().startsWith('@'))
+        .sort((a, b) => (b.views || 0) - (a.views || 0))
         .slice(0, 3)
 
-      const topTweetBlocks = top3.length > 0
-        ? top3.map((p, i) => {
-            const tweetUrl = `https://x.com/${p.username}/status/${p.tweetId}`
-            const er = p.views ? (((p.likes + p.retweets + p.replies) / p.views) * 100).toFixed(2) : null
-            const excerpt = p.postText?.length > 120 ? p.postText.slice(0, 120) + '…' : p.postText
-            return {
-              type: 'section',
-              text: {
-                type: 'mrkdwn',
-                text: `*${i + 1}. ${p.competitor}* · _${p.category}_\n>${excerpt}\n👁 ${fmtNum(p.views)} views · ❤️ ${fmtNum(p.likes)} · 🔁 ${fmtNum(p.retweets)}${er ? ` · *ER: ${er}%*` : ''}\n<${tweetUrl}|View Tweet →>`,
-              },
-            }
-          })
-        : [{ type: 'section', text: { type: 'mrkdwn', text: '_No new tweets today — all already synced._' } }]
-
-      const byCmp = {}
-      newTweets.forEach(p => { byCmp[p.competitor] = (byCmp[p.competitor] || 0) + 1 })
-      const mostActive = Object.entries(byCmp).sort((a, b) => b[1] - a[1])[0]
       const date = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 
-      await fetch(slackWebhook, {
+      let text = `*🤖 RISE Intel — Daily Update · ${date}*\n`
+      text += `${results.added} new tweets synced · ${results.skipped} already tracked\n\n`
+      text += `*🔥 Top Tweets Yesterday*\n\n`
+
+      if (top3.length > 0) {
+        top3.forEach((p, i) => {
+          const username = COMPETITOR_USERNAMES[p.competitor]
+          const tweetUrl = username ? `https://x.com/${username}/status/${p.tweetId}` : null
+          const er = p.views ? (((p.likes + p.retweets + p.replies) / p.views) * 100).toFixed(2) : null
+          const excerpt = p.postText?.length > 140 ? p.postText.slice(0, 140) + '…' : p.postText
+          text += `*${i + 1}. ${p.competitor}* · _${p.category}_\n`
+          text += `> ${excerpt}\n`
+          text += `👁 ${fmtNum(p.views)} views · ❤️ ${fmtNum(p.likes)} · 🔁 ${fmtNum(p.retweets)}`
+          if (er) text += ` · *ER: ${er}%*`
+          if (tweetUrl) text += `\n<${tweetUrl}|View Tweet →>`
+          text += '\n\n'
+        })
+      } else {
+        text += '_No tweets from the last 48 hours yet._\n\n'
+      }
+
+      text += `👉 <https://rise-dashboard-bice.vercel.app|Open Dashboard>`
+
+      const slackResp = await fetch(slackWebhook, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          blocks: [
-            {
-              type: 'header',
-              text: { type: 'plain_text', text: '🤖 RISE Intel — Daily Competitor Update', emoji: true },
-            },
-            {
-              type: 'context',
-              elements: [{ type: 'mrkdwn', text: `${date} · ${results.added} new tweets synced across 10 competitors` }],
-            },
-            { type: 'divider' },
-            {
-              type: 'section',
-              text: { type: 'mrkdwn', text: '*🔥 Top Tweets Yesterday*' },
-            },
-            ...topTweetBlocks,
-            { type: 'divider' },
-            {
-              type: 'section',
-              fields: [
-                { type: 'mrkdwn', text: `*New tweets:* ${results.added}` },
-                { type: 'mrkdwn', text: mostActive ? `*Most active:* ${mostActive[0]} (${mostActive[1]} tweets)` : '*Most active:* —' },
-              ],
-            },
-            {
-              type: 'actions',
-              elements: [{
-                type: 'button',
-                text: { type: 'plain_text', text: '👉 Open Dashboard', emoji: true },
-                url: 'https://rise-dashboard-bice.vercel.app',
-              }],
-            },
-          ],
-        }),
+        body: JSON.stringify({ text }),
       })
-      console.log('Slack digest sent')
+
+      if (!slackResp.ok) {
+        const errText = await slackResp.text()
+        console.error('Slack error:', slackResp.status, errText)
+      } else {
+        console.log('Slack digest sent')
+      }
     } catch (err) {
       console.error('Slack notify failed:', err.message)
     }

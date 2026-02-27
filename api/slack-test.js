@@ -7,24 +7,7 @@ export default async function handler(req, res) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      blocks: [
-        {
-          type: 'header',
-          text: { type: 'plain_text', text: '🤖 RISE Intel — Slack test', emoji: true },
-        },
-        {
-          type: 'section',
-          text: { type: 'mrkdwn', text: 'If you can see this, your Slack webhook is working correctly. Daily digests will post here every morning at 8am Vietnam time.' },
-        },
-        {
-          type: 'actions',
-          elements: [{
-            type: 'button',
-            text: { type: 'plain_text', text: '👉 Open Dashboard', emoji: true },
-            url: 'https://rise-dashboard-bice.vercel.app',
-          }],
-        },
-      ],
+      text: '🤖 *RISE Intel — Slack test*\nIf you can see this, your Slack webhook is working. Daily digests will post here every morning at 8am Vietnam time.\n👉 <https://rise-dashboard-bice.vercel.app|Open Dashboard>',
     }),
   })
 
