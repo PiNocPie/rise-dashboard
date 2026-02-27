@@ -58,6 +58,11 @@ function TweetCard({ post, isLoggedIn, isViral }) {
             @{twitterUrl.split('/').pop()}
           </a>
         )}
+        {post.isThread && (
+          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#14b8a622', color: '#14b8a6', border: '1px solid #14b8a644' }}>
+            🧵 Thread · {post.threadCount} tweets
+          </span>
+        )}
         {isViral && (
           <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: '#00e67622', color: '#00e676', border: '1px solid #00e67644' }}>
             🔥 Viral
@@ -153,7 +158,10 @@ export default function TwitterFeed({ posts, competitors, isLoggedIn }) {
   const [sortBy, setSortBy] = useState('newest')
   const [search, setSearch] = useState('')
 
-  const basePosts = posts.filter(p => p.autoLogged && p.postText)
+  // Filter: auto-logged, has text, not a reply (text starting with @)
+  const basePosts = posts.filter(p =>
+    p.autoLogged && p.postText && !p.postText.trim().startsWith('@')
+  )
 
   // Top 10% by views = viral
   const viralThreshold = useMemo(() => {

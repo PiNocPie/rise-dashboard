@@ -49,8 +49,8 @@ function classifyTweet(text) {
 
 async function fetchTweets(username, startTime, endTime) {
   const params = new URLSearchParams({
-    query: `from:${username} -is:retweet`,
-    'tweet.fields': 'public_metrics,created_at,text',
+    query: `from:${username} -is:retweet -is:reply`,
+    'tweet.fields': 'public_metrics,created_at,text,conversation_id',
     max_results: '100',
     start_time: startTime,
     end_time: endTime,
@@ -61,7 +61,36 @@ async function fetchTweets(username, startTime, endTime) {
   })
 
   const data = await resp.json()
-  return data.data || []
+  const tweets = data.data || []
+
+  // Group thread tweets by conversation_id → merge into one record
+  const byConv = {}
+  for (const t of tweets) {
+    const key = t.conversation_id || t.id
+    if (!byConv[key]) byConv[key] = []
+    byConv[key].push(t)
+  }
+
+  return Object.values(byConv).map(group => {
+    if (group.length === 1) return group[0]
+    // Sort oldest→newest so thread reads in order
+    group.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+    const first = group[0]
+    // Sum metrics across all tweets in thread
+    const m = group.reduce((acc, t) => ({
+      impression_count: acc.impression_count + (t.public_metrics.impression_count || 0),
+      like_count: acc.like_count + (t.public_metrics.like_count || 0),
+      retweet_count: acc.retweet_count + (t.public_metrics.retweet_count || 0),
+      reply_count: acc.reply_count + (t.public_metrics.reply_count || 0),
+    }), { impression_count: 0, like_count: 0, retweet_count: 0, reply_count: 0 })
+    return {
+      ...first,
+      text: group.map(t => t.text).join('\n\n'),
+      public_metrics: m,
+      isThread: true,
+      threadCount: group.length,
+    }
+  })
 }
 
 export default async function handler(req, res) {
@@ -113,6 +142,8 @@ export default async function handler(req, res) {
           retweets: m.retweet_count ?? 0,
           replies: m.reply_count ?? 0,
           postText: tweet.text,
+          isThread: tweet.isThread || false,
+          threadCount: tweet.threadCount || 1,
           autoLogged: true,
           syncedAt: new Date().toISOString(),
         }
