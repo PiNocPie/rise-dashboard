@@ -168,37 +168,92 @@ export default async function handler(req, res) {
         return String(n ?? 0)
       }
 
-      // Pull top 3 tweets from last 48h directly from Firestore (no composite index needed)
+      function erVal(p) {
+        if (!p.views) return 0
+        return (p.likes + p.retweets + p.replies) / p.views
+      }
+
+      function fmtTweet(p, i) {
+        const username = COMPETITOR_USERNAMES[p.competitor]
+        const tweetUrl = username ? `https://x.com/${username}/status/${p.tweetId}` : null
+        const er = p.views ? (erVal(p) * 100).toFixed(2) : null
+        const excerpt = p.postText?.length > 160 ? p.postText.slice(0, 160) + '…' : p.postText
+        let s = `*${i + 1}. ${p.competitor}* · _${p.category}_\n`
+        s += `> ${excerpt}\n`
+        s += `👁 ${fmtNum(p.views)} · ❤️ ${fmtNum(p.likes)} · 🔁 ${fmtNum(p.retweets)}`
+        if (er) s += ` · *ER: ${er}%*`
+        if (tweetUrl) s += `\n<${tweetUrl}|View Tweet →>`
+        return s
+      }
+
+      const DIV = '─────────────────────'
+
+      // Pull all posts from last 48h (metrics settled)
       const allSnapshot = await db.collection('posts').get()
       const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
-      const top3 = allSnapshot.docs
+      const recent = allSnapshot.docs
         .map(d => d.data())
         .filter(p => p.autoLogged && p.postDate >= cutoff && p.postText && !p.postText.trim().startsWith('@'))
-        .sort((a, b) => (b.views || 0) - (a.views || 0))
+
+      // Activity summary — who posted vs silent
+      const ALL_ACCOUNTS = Object.keys(COMPETITOR_USERNAMES)
+      const postedSet = new Set(recent.map(p => p.competitor))
+      const active = ALL_ACCOUNTS.filter(c => postedSet.has(c))
+      const silent = ALL_ACCOUNTS.filter(c => !postedSet.has(c))
+
+      // Viral — top 3 by views
+      const viral = [...recent].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 3)
+      const viralIds = new Set(viral.map(p => p.tweetId))
+
+      // Stand out — top 3 by ER (min 500 views, not already viral)
+      const standOut = [...recent]
+        .filter(p => (p.views || 0) >= 500 && !viralIds.has(p.tweetId))
+        .sort((a, b) => erVal(b) - erVal(a))
         .slice(0, 3)
 
-      const date = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+      // Low engagement — bottom 3 by ER (min 1000 views to filter noise)
+      const lowEng = [...recent]
+        .filter(p => (p.views || 0) >= 1000)
+        .sort((a, b) => erVal(a) - erVal(b))
+        .slice(0, 3)
 
-      let text = `*🤖 RISE Intel — Daily Update · ${date}*\n`
-      text += `${results.added} new tweets synced · ${results.skipped} already tracked\n\n`
-      text += `*🔥 Top Tweets Yesterday*\n\n`
+      const date = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 
-      if (top3.length > 0) {
-        top3.forEach((p, i) => {
-          const username = COMPETITOR_USERNAMES[p.competitor]
-          const tweetUrl = username ? `https://x.com/${username}/status/${p.tweetId}` : null
-          const er = p.views ? (((p.likes + p.retweets + p.replies) / p.views) * 100).toFixed(2) : null
-          const excerpt = p.postText?.length > 140 ? p.postText.slice(0, 140) + '…' : p.postText
-          text += `*${i + 1}. ${p.competitor}* · _${p.category}_\n`
-          text += `> ${excerpt}\n`
-          text += `👁 ${fmtNum(p.views)} views · ❤️ ${fmtNum(p.likes)} · 🔁 ${fmtNum(p.retweets)}`
-          if (er) text += ` · *ER: ${er}%*`
-          if (tweetUrl) text += `\n<${tweetUrl}|View Tweet →>`
-          text += '\n\n'
-        })
+      let text = `🤖 *RISE Intel — Daily Digest · ${date}*\n\n`
+
+      // Section 1: Activity summary
+      text += `📊 *Activity Summary*\n`
+      text += `${active.length} of ${ALL_ACCOUNTS.length} posted in the last 24h\n`
+      if (active.length) text += `*Active:* ${active.join(' · ')}\n`
+      if (silent.length) text += `*Silent:* ${silent.join(' · ')}\n`
+      text += `${DIV}\n`
+
+      // Section 2: Viral
+      text += `🔥 *Viral* _(top by views)_\n\n`
+      if (viral.length) {
+        text += viral.map((p, i) => fmtTweet(p, i)).join('\n\n') + '\n'
       } else {
-        text += '_No tweets from the last 48 hours yet._\n\n'
+        text += '_No data yet._\n'
       }
+      text += `${DIV}\n`
+
+      // Section 3: Stand Out
+      text += `⭐ *Stand Out* _(highest engagement rate)_\n\n`
+      if (standOut.length) {
+        text += standOut.map((p, i) => fmtTweet(p, i)).join('\n\n') + '\n'
+      } else {
+        text += '_Not enough data._\n'
+      }
+      text += `${DIV}\n`
+
+      // Section 4: Low Engagement
+      text += `📉 *Low Engagement* _(what didn't land — learn from it)_\n\n`
+      if (lowEng.length) {
+        text += lowEng.map((p, i) => fmtTweet(p, i)).join('\n\n') + '\n'
+      } else {
+        text += '_No low-engagement posts with enough reach._\n'
+      }
+      text += `${DIV}\n`
 
       text += `👉 <https://rise-dashboard-bice.vercel.app|Open Dashboard>`
 
