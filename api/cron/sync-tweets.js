@@ -83,6 +83,7 @@ export default async function handler(req, res) {
 
   const db = getDb()
   const results = { added: 0, skipped: 0, errors: [] }
+  const newTweets = [] // collect for Slack digest — no extra Firestore query needed
 
   for (const [competitor, username] of Object.entries(COMPETITOR_USERNAMES)) {
     try {
@@ -99,7 +100,7 @@ export default async function handler(req, res) {
         }
 
         const m = tweet.public_metrics
-        await docRef.set({
+        const record = {
           id: docId,
           tweetId: tweet.id,
           competitor,
@@ -110,10 +111,11 @@ export default async function handler(req, res) {
           retweets: m.retweet_count ?? 0,
           replies: m.reply_count ?? 0,
           postText: tweet.text,
-          tweetId: tweet.id,
           autoLogged: true,
           syncedAt: new Date().toISOString(),
-        })
+        }
+        await docRef.set(record)
+        newTweets.push({ ...record, username })
         results.added++
       }
     } catch (err) {
@@ -125,47 +127,36 @@ export default async function handler(req, res) {
 
   // Send Slack digest if webhook is configured
   const slackWebhook = process.env.SLACK_WEBHOOK_URL
-  if (slackWebhook && results.added > 0) {
+  if (slackWebhook) {
     try {
-      // Fetch top 3 tweets from last 24h by views
-      const snapshot = await db.collection('posts')
-        .where('autoLogged', '==', true)
-        .where('syncedAt', '>=', startTime)
-        .orderBy('syncedAt')
-        .get()
-
-      const newTweets = snapshot.docs
-        .map(d => d.data())
-        .filter(p => p.views > 0)
-        .sort((a, b) => b.views - a.views)
-        .slice(0, 3)
-
       function fmtNum(n) {
         if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
         if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`
         return String(n)
       }
 
-      const topTweetBlocks = newTweets.map((p, i) => {
-        const username = COMPETITOR_USERNAMES[p.competitor]
-        const tweetUrl = username ? `https://x.com/${username}/status/${p.tweetId}` : null
-        const er = p.views ? (((p.likes + p.retweets + p.replies) / p.views) * 100).toFixed(2) : null
-        const excerpt = p.postText?.length > 120 ? p.postText.slice(0, 120) + '…' : p.postText
-        return {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: `*${i + 1}. ${p.competitor}* · _${p.category}_\n>${excerpt}\n👁 ${fmtNum(p.views)} views · ❤️ ${fmtNum(p.likes)} · 🔁 ${fmtNum(p.retweets)}${er ? ` · *ER: ${er}%*` : ''}${tweetUrl ? `\n<${tweetUrl}|View Tweet →>` : ''}`,
-          },
-        }
-      })
+      const top3 = [...newTweets]
+        .sort((a, b) => b.views - a.views)
+        .slice(0, 3)
 
-      // Count by competitor
-      const allNew = snapshot.docs.map(d => d.data())
+      const topTweetBlocks = top3.length > 0
+        ? top3.map((p, i) => {
+            const tweetUrl = `https://x.com/${p.username}/status/${p.tweetId}`
+            const er = p.views ? (((p.likes + p.retweets + p.replies) / p.views) * 100).toFixed(2) : null
+            const excerpt = p.postText?.length > 120 ? p.postText.slice(0, 120) + '…' : p.postText
+            return {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `*${i + 1}. ${p.competitor}* · _${p.category}_\n>${excerpt}\n👁 ${fmtNum(p.views)} views · ❤️ ${fmtNum(p.likes)} · 🔁 ${fmtNum(p.retweets)}${er ? ` · *ER: ${er}%*` : ''}\n<${tweetUrl}|View Tweet →>`,
+              },
+            }
+          })
+        : [{ type: 'section', text: { type: 'mrkdwn', text: '_No new tweets today — all already synced._' } }]
+
       const byCmp = {}
-      allNew.forEach(p => { byCmp[p.competitor] = (byCmp[p.competitor] || 0) + 1 })
+      newTweets.forEach(p => { byCmp[p.competitor] = (byCmp[p.competitor] || 0) + 1 })
       const mostActive = Object.entries(byCmp).sort((a, b) => b[1] - a[1])[0]
-
       const date = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 
       await fetch(slackWebhook, {
@@ -192,7 +183,7 @@ export default async function handler(req, res) {
               type: 'section',
               fields: [
                 { type: 'mrkdwn', text: `*New tweets:* ${results.added}` },
-                { type: 'mrkdwn', text: mostActive ? `*Most active:* ${mostActive[0]} (${mostActive[1]} tweets)` : ' ' },
+                { type: 'mrkdwn', text: mostActive ? `*Most active:* ${mostActive[0]} (${mostActive[1]} tweets)` : '*Most active:* —' },
               ],
             },
             {
@@ -200,12 +191,13 @@ export default async function handler(req, res) {
               elements: [{
                 type: 'button',
                 text: { type: 'plain_text', text: '👉 Open Dashboard', emoji: true },
-                url: 'https://rise-intel.vercel.app',
+                url: 'https://rise-dashboard-bice.vercel.app',
               }],
             },
           ],
         }),
       })
+      console.log('Slack digest sent')
     } catch (err) {
       console.error('Slack notify failed:', err.message)
     }
