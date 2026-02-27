@@ -231,6 +231,51 @@ async function analyzeGuild(guildId, guildName, token, db) {
   return snapshot
 }
 
+async function sendSlackDigest(snapshots) {
+  const webhook = process.env.SLACK_WEBHOOK_URL
+  if (!webhook) return
+
+  const lines = ['📊 *RISE Discord Daily Report*', '━━━━━━━━━━━━━━━━━━━━', '']
+
+  for (const s of snapshots) {
+    const net = s.netChange > 0 ? `+${s.netChange}` : s.netChange < 0 ? `${s.netChange}` : '±0'
+    const netIcon = s.netChange > 0 ? '📈' : s.netChange < 0 ? '📉' : '➡️'
+    lines.push(`💬 *${s.guildName} Discord*`)
+    lines.push(`Members: *${s.memberCount.toLocaleString()}* ${s.previousMemberCount != null ? `${netIcon} ${net} vs yesterday` : ''}`)
+    lines.push(`Online: ~${s.onlineCount.toLocaleString()}`)
+    lines.push(`Messages (24h): *${s.messageCount24h.toLocaleString()}*`)
+    if (s.activeChannels[0]) {
+      lines.push(`Most Active: #${s.activeChannels[0].name} (${s.activeChannels[0].count} msgs)`)
+    }
+    if (s.activeMembers[0]) {
+      lines.push(`Top Member: ${s.activeMembers[0].displayName || s.activeMembers[0].username} (${s.activeMembers[0].count} msgs)`)
+    }
+    if (s.topicsKeywords?.length > 0) {
+      lines.push(`🔥 Hot topics: ${s.topicsKeywords.slice(0, 5).map(k => k.keyword).join(', ')}`)
+    }
+    if (s.pendingTickets?.length > 0) {
+      lines.push(`⚠️ *${s.pendingTickets.length} ticket${s.pendingTickets.length > 1 ? 's' : ''} need attention*`)
+      for (const t of s.pendingTickets.slice(0, 3)) {
+        lines.push(`  • #${t.channelName} — ${t.authorName}: "${(t.preview || '').slice(0, 60)}…" (${t.ageHours}h ago) ${t.url ? `<${t.url}|view>` : ''}`)
+      }
+    }
+    lines.push('')
+  }
+
+  const dashUrl = process.env.DASHBOARD_URL || 'https://rise-dashboard-bice.vercel.app'
+  lines.push(`<${dashUrl}|🔗 Open Dashboard>`)
+
+  try {
+    await fetch(webhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: lines.join('\n') }),
+    })
+  } catch {
+    // Slack digest failure is non-fatal
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
@@ -251,11 +296,13 @@ export default async function handler(req, res) {
 
   const db = getDb()
   const results = []
+  const successSnapshots = []
 
   if (RISE_ID) {
     try {
       const snap = await analyzeGuild(RISE_ID, 'RISE', TOKEN, db)
       results.push({ server: 'RISE', ok: true, members: snap.memberCount, messages24h: snap.messageCount24h, tickets: snap.pendingTickets.length })
+      successSnapshots.push(snap)
     } catch (err) {
       results.push({ server: 'RISE', ok: false, error: err.message })
     }
@@ -265,9 +312,14 @@ export default async function handler(req, res) {
     try {
       const snap = await analyzeGuild(RISEX_ID, 'RISEx', TOKEN, db)
       results.push({ server: 'RISEx', ok: true, members: snap.memberCount, messages24h: snap.messageCount24h, tickets: snap.pendingTickets.length })
+      successSnapshots.push(snap)
     } catch (err) {
       results.push({ server: 'RISEx', ok: false, error: err.message })
     }
+  }
+
+  if (successSnapshots.length > 0) {
+    await sendSlackDigest(successSnapshots)
   }
 
   return res.json({ ok: true, results, syncedAt: new Date().toISOString() })

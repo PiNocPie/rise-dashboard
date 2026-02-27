@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { db } from '../firebase'
-import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore'
+import { collection, query, orderBy, limit, onSnapshot, doc, setDoc, arrayUnion } from 'firebase/firestore'
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts'
 
 const DC = '#5865F2'        // Discord blurple
@@ -14,6 +14,7 @@ const TABS = [
   { id: 'members',     label: 'Members' },
   { id: 'channels',    label: 'Channels' },
   { id: 'discussions', label: 'Discussions' },
+  { id: 'trends',      label: 'Trends' },
   { id: 'tickets',     label: 'Tickets' },
 ]
 
@@ -473,13 +474,113 @@ function DiscussionsTab({ rise, risex }) {
   )
 }
 
+// ─── Trends tab ──────────────────────────────────────────────────────────────
+
+function TrendsTab({ snapshots }) {
+  // Build combined daily series sorted chronologically
+  const byDate = {}
+  for (const s of [...snapshots].sort((a, b) => new Date(a.syncedAt) - new Date(b.syncedAt))) {
+    const date = new Date(s.syncedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    if (!byDate[date]) byDate[date] = { date }
+    byDate[date][s.guildName + '_members']  = s.memberCount
+    byDate[date][s.guildName + '_messages'] = s.messageCount24h
+  }
+  const chartData = Object.values(byDate).slice(-30)
+
+  if (chartData.length < 2) {
+    return (
+      <div className="flex flex-col items-center justify-center h-48 gap-2">
+        <div className="text-sm font-medium text-white">Not enough history yet</div>
+        <div className="text-xs" style={{ color: '#6b7280' }}>
+          Trends populate after a few daily syncs. Check back tomorrow.
+        </div>
+      </div>
+    )
+  }
+
+  const tooltipStyle = {
+    contentStyle: { backgroundColor: '#0a0a0f', border: '1px solid #111', borderRadius: '8px', fontSize: '12px' },
+    labelStyle: { color: '#e2e8f0' },
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Member growth */}
+      <Card>
+        <div className="text-sm font-bold text-white mb-4">Member Growth Over Time</div>
+        <ResponsiveContainer width="100%" height={200}>
+          <LineChart data={chartData} margin={{ left: 0, right: 8, top: 4, bottom: 4 }}>
+            <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} width={50} />
+            <Tooltip {...tooltipStyle} />
+            <Legend wrapperStyle={{ fontSize: '11px', color: '#9ca3af' }} />
+            <Line type="monotone" dataKey="RISE_members"  stroke="#00e676" strokeWidth={2} dot={false} name="RISE" />
+            <Line type="monotone" dataKey="RISEx_members" stroke={DC}       strokeWidth={2} dot={false} name="RISEx" />
+          </LineChart>
+        </ResponsiveContainer>
+      </Card>
+
+      {/* Message volume */}
+      <Card>
+        <div className="text-sm font-bold text-white mb-4">Daily Message Volume (24h window)</div>
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={chartData} margin={{ left: 0, right: 8, top: 4, bottom: 4 }}>
+            <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
+            <Tooltip {...tooltipStyle} />
+            <Legend wrapperStyle={{ fontSize: '11px', color: '#9ca3af' }} />
+            <Bar dataKey="RISE_messages"  fill="#00e676" name="RISE"  radius={[2, 2, 0, 0]} />
+            <Bar dataKey="RISEx_messages" fill={DC}      name="RISEx" radius={[2, 2, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </Card>
+
+      {/* Net change table */}
+      <Card>
+        <div className="text-sm font-bold text-white mb-4">Daily Net Member Change</div>
+        <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
+          {[...chartData].reverse().map((d, i) => {
+            const riseNet = chartData.indexOf(d) > 0
+              ? (d.RISE_members  || 0) - (chartData[chartData.indexOf(d) - 1].RISE_members  || 0)
+              : 0
+            const risexNet = chartData.indexOf(d) > 0
+              ? (d.RISEx_members || 0) - (chartData[chartData.indexOf(d) - 1].RISEx_members || 0)
+              : 0
+            return (
+              <div key={i} className="flex items-center justify-between py-1.5 text-xs" style={{ borderBottom: '1px solid #0d0d1a' }}>
+                <span style={{ color: '#6b7280' }}>{d.date}</span>
+                <div className="flex gap-6">
+                  <span>
+                    <span style={{ color: '#4b5563' }}>RISE </span>
+                    <span style={{ color: riseNet > 0 ? '#00e676' : riseNet < 0 ? '#ef4444' : '#6b7280' }}>
+                      {riseNet > 0 ? `+${riseNet}` : riseNet}
+                    </span>
+                  </span>
+                  <span>
+                    <span style={{ color: '#4b5563' }}>RISEx </span>
+                    <span style={{ color: risexNet > 0 ? '#00e676' : risexNet < 0 ? '#ef4444' : '#6b7280' }}>
+                      {risexNet > 0 ? `+${risexNet}` : risexNet}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </Card>
+    </div>
+  )
+}
+
 // ─── Tickets tab ─────────────────────────────────────────────────────────────
 
-function TicketsTab({ rise, risex }) {
+function TicketsTab({ rise, risex, resolvedIds, onResolve, isLoggedIn }) {
   const all = [
     ...(rise?.pendingTickets || []).map(t => ({ ...t, server: 'RISE' })),
     ...(risex?.pendingTickets || []).map(t => ({ ...t, server: 'RISEx' })),
-  ].sort((a, b) => b.ageHours - a.ageHours)
+  ]
+    .filter(t => !resolvedIds.has(`${t.server}-${t.channelId}-${t.id}`))
+    .sort((a, b) => b.ageHours - a.ageHours)
 
   if (all.length === 0) {
     return (
@@ -556,14 +657,19 @@ function TicketsTab({ rise, risex }) {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs px-2.5 py-1 rounded-lg font-medium transition-all"
-                      style={{
-                        backgroundColor: DC_DIM,
-                        border: `1px solid ${DC_BORDER}`,
-                        color: DC,
-                      }}
+                      style={{ backgroundColor: DC_DIM, border: `1px solid ${DC_BORDER}`, color: DC }}
                     >
                       View ↗
                     </a>
+                  )}
+                  {isLoggedIn && (
+                    <button
+                      onClick={() => onResolve(`${t.server}-${t.channelId}-${t.id}`)}
+                      className="text-xs px-2.5 py-1 rounded-lg font-medium transition-all"
+                      style={{ backgroundColor: 'rgba(0,230,118,0.1)', border: '1px solid rgba(0,230,118,0.25)', color: '#00e676' }}
+                    >
+                      ✓ Resolve
+                    </button>
                   )}
                 </div>
               </div>
@@ -587,12 +693,13 @@ export default function DiscordDashboard({ isLoggedIn, onRefresh, refreshing, da
   const [activeTab, setActiveTab] = useState('overview')
   const [snapshots, setSnapshots] = useState([])
   const [loading, setLoading] = useState(true)
+  const [resolvedIds, setResolvedIds] = useState(new Set())
 
   useEffect(() => {
     const q = query(
       collection(db, 'discord_snapshots'),
       orderBy('syncedAt', 'desc'),
-      limit(60), // fetch more so date filter has enough to work with
+      limit(60),
     )
     const unsub = onSnapshot(q, (snap) => {
       setSnapshots(snap.docs.map(d => ({ ...d.data(), _docId: d.id })))
@@ -600,6 +707,18 @@ export default function DiscordDashboard({ isLoggedIn, onRefresh, refreshing, da
     })
     return () => unsub()
   }, [])
+
+  // Listen to resolved tickets
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'discord_meta', 'resolved_tickets'), (snap) => {
+      if (snap.exists()) setResolvedIds(new Set(snap.data().ids || []))
+    })
+    return () => unsub()
+  }, [])
+
+  const handleResolve = async (ticketKey) => {
+    await setDoc(doc(db, 'discord_meta', 'resolved_tickets'), { ids: arrayUnion(ticketKey) }, { merge: true })
+  }
 
   // Filter snapshots by date range, then pick latest per server within that window
   const filtered = snapshots.filter(s => {
@@ -720,7 +839,8 @@ export default function DiscordDashboard({ isLoggedIn, onRefresh, refreshing, da
           {activeTab === 'members'     && <MembersTab     rise={rise} risex={risex} />}
           {activeTab === 'channels'    && <ChannelsTab    rise={rise} risex={risex} />}
           {activeTab === 'discussions' && <DiscussionsTab rise={rise} risex={risex} />}
-          {activeTab === 'tickets'     && <TicketsTab     rise={rise} risex={risex} />}
+          {activeTab === 'trends'      && <TrendsTab      snapshots={snapshots} />}
+          {activeTab === 'tickets'     && <TicketsTab     rise={rise} risex={risex} resolvedIds={resolvedIds} onResolve={handleResolve} isLoggedIn={isLoggedIn} />}
         </>
       )}
     </div>
