@@ -580,7 +580,7 @@ function TicketsTab({ rise, risex, resolvedIds, onResolve, isLoggedIn }) {
     ...(risex?.pendingTickets || []).map(t => ({ ...t, server: 'RISEx' })),
   ]
     .filter(t => !resolvedIds.has(`${t.server}-${t.channelId}-${t.id}`))
-    .sort((a, b) => b.ageHours - a.ageHours)
+    .sort((a, b) => (a.hasStaffReply ? 1 : 0) - (b.hasStaffReply ? 1 : 0) || (b.idleHours || b.ageHours || 0) - (a.idleHours || a.ageHours || 0))
 
   if (all.length === 0) {
     return (
@@ -614,8 +614,13 @@ function TicketsTab({ rise, risex, resolvedIds, onResolve, isLoggedIn }) {
 
       <div className="flex flex-col gap-3">
         {all.map((t, i) => {
-          const urgency = t.ageHours > 24 ? 'rgba(239,68,68,0.25)' : t.ageHours > 6 ? 'rgba(245,158,11,0.15)' : '#111'
-          const ageColor = t.ageHours > 24 ? '#ef4444' : t.ageHours > 6 ? '#f59e0b' : '#6b7280'
+          const idleH = t.idleHours ?? t.ageHours ?? 0
+          const urgency = !t.hasStaffReply && idleH > 24
+            ? 'rgba(239,68,68,0.25)'
+            : idleH > 6
+            ? 'rgba(245,158,11,0.15)'
+            : '#111'
+          const idleColor = idleH > 24 ? '#ef4444' : idleH > 6 ? '#f59e0b' : '#6b7280'
 
           return (
             <div
@@ -634,22 +639,20 @@ function TicketsTab({ rise, risex, resolvedIds, onResolve, isLoggedIn }) {
                   <span className="text-xs" style={{ color: '#6b7280' }}>
                     #{t.channelName}
                   </span>
-                  {t.isTicketChannel && (
-                    <span
-                      className="text-xs px-2 py-0.5 rounded"
-                      style={{
-                        backgroundColor: 'rgba(239,68,68,0.1)',
-                        border: '1px solid rgba(239,68,68,0.2)',
-                        color: '#f87171',
-                      }}
-                    >
-                      🎫 Ticket
-                    </span>
-                  )}
+                  <span
+                    className="text-xs px-2 py-0.5 rounded"
+                    style={
+                      t.hasStaffReply
+                        ? { backgroundColor: 'rgba(0,230,118,0.1)', border: '1px solid rgba(0,230,118,0.2)', color: '#00e676' }
+                        : { backgroundColor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171' }
+                    }
+                  >
+                    {t.hasStaffReply ? '✅ Replied' : '🔴 No reply'}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-xs font-medium" style={{ color: ageColor }}>
-                    {t.ageHours}h ago
+                  <span className="text-xs font-medium" style={{ color: idleColor }}>
+                    idle {idleH}h
                   </span>
                   {t.url && (
                     <a

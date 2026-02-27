@@ -28,10 +28,12 @@ async function dfetch(path, token) {
 // Channel type 0 = GUILD_TEXT
 const isTextChannel = (c) => c.type === 0
 
-// Channels to always analyze (support/help/ticket)
-function isTicketChannel(ch) {
-  const n = (ch.name || '').toLowerCase()
-  return n.startsWith('ticket-') || n.startsWith('ticket_') || n === 'tickets'
+// TicketTool creates private channels named ticket-XXXX (e.g. ticket-0309)
+// Channel existence = open ticket (TicketTool deletes the channel on close)
+const TICKETTOOL_RE = /^ticket-\d+/i
+
+function isTicketToolChannel(ch) {
+  return TICKETTOOL_RE.test(ch.name || '')
 }
 
 function isSupportChannel(ch) {
@@ -76,18 +78,17 @@ async function analyzeGuild(guildId, guildName, token, db) {
   const allChannels = await dfetch(`/guilds/${guildId}/channels`, token)
   const textChannels = allChannels.filter(isTextChannel)
 
-  const ticketChannels = textChannels.filter(isTicketChannel)
+  const ticketToolChannels = allChannels.filter(isTicketToolChannel) // includes private channels
   const supportChannels = textChannels.filter(isSupportChannel)
-  // Mix: ticket + support first, then the rest (sorted by position)
-  const priorityIds = new Set([...ticketChannels, ...supportChannels].map(c => c.id))
+  // Mix: support first, then the rest (sorted by position); ticket channels handled separately
+  const priorityIds = new Set(supportChannels.map(c => c.id))
   const otherChannels = textChannels
     .filter(c => !priorityIds.has(c.id))
     .sort((a, b) => (a.position || 0) - (b.position || 0))
   const channelsToAnalyze = [
-    ...ticketChannels,
     ...supportChannels,
     ...otherChannels,
-  ].slice(0, 45) // max 45 channels to stay under rate limits
+  ].slice(0, 40) // max 40 activity channels (leave room for ticket fetches)
 
   const now = Date.now()
   const since24h = now - 24 * 60 * 60 * 1000
@@ -127,35 +128,49 @@ async function analyzeGuild(guildId, guildName, token, db) {
     }
 
     allRecentMsgs.push(...recent)
+  }
 
-    // Ticket detection — unanswered messages older than 1h in ticket/support channels
-    if (isTicketChannel(channel) || isSupportChannel(channel)) {
-      for (const msg of messages.slice(0, 20)) {
-        if (msg.author?.bot) continue
-        const ageHours = (now - new Date(msg.timestamp).getTime()) / 3_600_000
-        if (ageHours < 1 || ageHours > 72) continue
-        // Flag if no subsequent message from another user (simple heuristic)
-        const idx = messages.indexOf(msg)
-        const replies = messages.slice(0, idx).filter(m =>
-          m.author?.id !== msg.author?.id && !m.author?.bot
-        )
-        if (replies.length === 0) {
-          pendingTickets.push({
-            id: msg.id,
-            channelId: channel.id,
-            channelName: channel.name,
-            authorId: msg.author?.id,
-            authorName: msg.member?.nick || msg.author?.global_name || msg.author?.username || 'Unknown',
-            preview: (msg.content || '').slice(0, 150),
-            createdAt: msg.timestamp,
-            ageHours: Math.round(ageHours),
-            isTicketChannel: isTicketChannel(channel),
-            url: `https://discord.com/channels/${guildId}/${channel.id}/${msg.id}`,
-          })
-          break // one per channel is enough
-        }
-      }
+  // TicketTool ticket detection — each ticket-XXXX channel = 1 open ticket
+  for (const channel of ticketToolChannels.slice(0, 50)) {
+    let messages = []
+    try {
+      messages = await dfetch(`/channels/${channel.id}/messages?limit=50`, token)
+      await new Promise(r => setTimeout(r, 150))
+    } catch {
+      continue // bot may not have access yet
     }
+    if (!messages.length) continue
+
+    // Messages are returned newest-first; reverse to get chronological order
+    const chronological = [...messages].reverse()
+
+    // First non-bot message = ticket opener
+    const opener = chronological.find(m => m.author && !m.author.bot)
+    if (!opener) continue
+
+    // Last message in channel (newest-first[0])
+    const lastMsg = messages[0]
+    const idleMs = now - new Date(lastMsg.timestamp).getTime()
+    const idleHours = Math.round(idleMs / 3_600_000)
+
+    // Has any non-opener, non-bot replied?
+    const hasStaffReply = chronological.some(
+      m => !m.author?.bot && m.author?.id !== opener.author?.id
+    )
+
+    pendingTickets.push({
+      id: opener.id,
+      channelId: channel.id,
+      channelName: channel.name,
+      authorId: opener.author?.id,
+      authorName: opener.member?.nick || opener.author?.global_name || opener.author?.username || 'Unknown',
+      preview: (opener.content || '').slice(0, 150),
+      createdAt: opener.timestamp,
+      idleHours,
+      hasStaffReply,
+      isTicketChannel: true,
+      url: `https://discord.com/channels/${guildId}/${channel.id}`,
+    })
   }
 
   const activeMembers = Object.values(authorCounts)
@@ -222,7 +237,9 @@ async function analyzeGuild(guildId, guildName, token, db) {
     activeChannels,
     activeMembers,
     topicsKeywords,
-    pendingTickets: pendingTickets.slice(0, 25),
+    pendingTickets: pendingTickets
+      .sort((a, b) => (a.hasStaffReply ? 1 : 0) - (b.hasStaffReply ? 1 : 0) || b.idleHours - a.idleHours)
+      .slice(0, 25),
     recentJoins,
     syncedAt: new Date().toISOString(),
   }
@@ -256,7 +273,8 @@ async function sendSlackDigest(snapshots) {
     if (s.pendingTickets?.length > 0) {
       lines.push(`⚠️ *${s.pendingTickets.length} ticket${s.pendingTickets.length > 1 ? 's' : ''} need attention*`)
       for (const t of s.pendingTickets.slice(0, 3)) {
-        lines.push(`  • #${t.channelName} — ${t.authorName}: "${(t.preview || '').slice(0, 60)}…" (${t.ageHours}h ago) ${t.url ? `<${t.url}|view>` : ''}`)
+        const replyFlag = t.hasStaffReply ? '✅' : '🔴'
+        lines.push(`  • ${replyFlag} #${t.channelName} — ${t.authorName}: "${(t.preview || '').slice(0, 60)}…" (idle ${t.idleHours}h) ${t.url ? `<${t.url}|view>` : ''}`)
       }
     }
     lines.push('')
