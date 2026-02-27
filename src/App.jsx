@@ -206,35 +206,37 @@ export default function App() {
                 </button>
               </div>
 
+              {/* Date/time range filter — shown for both platforms */}
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="datetime-local"
+                  value={dateFrom}
+                  onChange={e => setDateFrom(e.target.value)}
+                  className="px-2 py-1.5 text-xs rounded-lg"
+                  style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e', color: dateFrom ? '#e2e8f0' : '#4b5563', cursor: 'pointer' }}
+                />
+                <span className="text-xs" style={{ color: '#4b5563' }}>→</span>
+                <input
+                  type="datetime-local"
+                  value={dateTo}
+                  onChange={e => setDateTo(e.target.value)}
+                  className="px-2 py-1.5 text-xs rounded-lg"
+                  style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e', color: dateTo ? '#e2e8f0' : '#4b5563', cursor: 'pointer' }}
+                />
+                {(dateFrom || dateTo) && (
+                  <button
+                    onClick={clearDates}
+                    className="px-2 py-1.5 text-xs rounded-lg"
+                    style={{ border: '1px solid #1a1a2e', color: '#6b7280', cursor: 'pointer' }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
               {/* Twitter-specific controls */}
               {platform === 'twitter' && (
                 <>
-                  <div className="flex items-center gap-1.5">
-                    <input
-                      type="date"
-                      value={dateFrom}
-                      onChange={e => setDateFrom(e.target.value)}
-                      className="px-2 py-1.5 text-xs rounded-lg"
-                      style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e', color: dateFrom ? '#e2e8f0' : '#4b5563', cursor: 'pointer' }}
-                    />
-                    <span className="text-xs" style={{ color: '#4b5563' }}>→</span>
-                    <input
-                      type="date"
-                      value={dateTo}
-                      onChange={e => setDateTo(e.target.value)}
-                      className="px-2 py-1.5 text-xs rounded-lg"
-                      style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e', color: dateTo ? '#e2e8f0' : '#4b5563', cursor: 'pointer' }}
-                    />
-                    {(dateFrom || dateTo) && (
-                      <button
-                        onClick={clearDates}
-                        className="px-2 py-1.5 text-xs rounded-lg"
-                        style={{ border: '1px solid #1a1a2e', color: '#6b7280', cursor: 'pointer' }}
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
                   {isLoggedIn && (
                     <>
                       <button
@@ -268,6 +270,7 @@ export default function App() {
                   )}
                 </>
               )}
+              {/* end Twitter-specific */}
 
               <button
                 onClick={() => isLoggedIn ? setIsLoggedIn(false) : (setShowLogin(true), setLoginPassword(''), setLoginError(''))}
@@ -387,6 +390,8 @@ export default function App() {
             isLoggedIn={isLoggedIn}
             onRefresh={handleDiscordRefresh}
             refreshing={discordRefreshing}
+            dateFrom={dateFrom}
+            dateTo={dateTo}
           />
         </main>
       ) : loading ? (

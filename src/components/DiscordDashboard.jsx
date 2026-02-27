@@ -583,7 +583,7 @@ function TicketsTab({ rise, risex }) {
 
 // ─── Main DiscordDashboard ────────────────────────────────────────────────────
 
-export default function DiscordDashboard({ isLoggedIn, onRefresh, refreshing }) {
+export default function DiscordDashboard({ isLoggedIn, onRefresh, refreshing, dateFrom, dateTo }) {
   const [activeTab, setActiveTab] = useState('overview')
   const [snapshots, setSnapshots] = useState([])
   const [loading, setLoading] = useState(true)
@@ -592,7 +592,7 @@ export default function DiscordDashboard({ isLoggedIn, onRefresh, refreshing }) 
     const q = query(
       collection(db, 'discord_snapshots'),
       orderBy('syncedAt', 'desc'),
-      limit(10),
+      limit(60), // fetch more so date filter has enough to work with
     )
     const unsub = onSnapshot(q, (snap) => {
       setSnapshots(snap.docs.map(d => ({ ...d.data(), _docId: d.id })))
@@ -601,8 +601,21 @@ export default function DiscordDashboard({ isLoggedIn, onRefresh, refreshing }) 
     return () => unsub()
   }, [])
 
-  const rise  = snapshots.find(s => s.guildName === 'RISE')
-  const risex = snapshots.find(s => s.guildName === 'RISEx')
+  // Filter snapshots by date range, then pick latest per server within that window
+  const filtered = snapshots.filter(s => {
+    const t = new Date(s.syncedAt).getTime()
+    if (dateFrom && t < new Date(dateFrom).getTime()) return false
+    if (dateTo) {
+      const to = new Date(dateTo)
+      to.setSeconds(59, 999)
+      if (t > to.getTime()) return false
+    }
+    return true
+  })
+
+  const pool = (dateFrom || dateTo) ? filtered : snapshots
+  const rise  = pool.find(s => s.guildName === 'RISE')
+  const risex = pool.find(s => s.guildName === 'RISEx')
 
   const totalTickets =
     (rise?.pendingTickets?.length || 0) + (risex?.pendingTickets?.length || 0)
