@@ -45,7 +45,7 @@ function TweetCard({ post, isLoggedIn, isViral }) {
   }
 
   return (
-    <div className="rounded-lg p-4 flex flex-col gap-3" style={{ backgroundColor: '#242424', border: `1px solid ${isViral ? '#FF770044' : '#2d2d2d'}` }}>
+    <div className="rounded-lg p-4 flex flex-col gap-3" style={{ backgroundColor: '#242424', border: `1px solid ${isViral ? '#00e67644' : '#2d2d2d'}` }}>
       {/* Header */}
       <div className="flex items-center gap-2 flex-wrap">
         <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
@@ -64,7 +64,7 @@ function TweetCard({ post, isLoggedIn, isViral }) {
           </span>
         )}
         {isViral && (
-          <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: '#FF770022', color: '#FF7700', border: '1px solid #FF770044' }}>
+          <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: '#00e67622', color: '#00e676', border: '1px solid #00e67644' }}>
             🔥 Viral
           </span>
         )}
@@ -92,7 +92,7 @@ function TweetCard({ post, isLoggedIn, isViral }) {
         ))}
         {er !== null && (
           <div className="flex flex-col items-center">
-            <span className="text-sm font-bold" style={{ color: '#FF7700' }}>{er}%</span>
+            <span className="text-sm font-bold" style={{ color: '#00e676' }}>{er}%</span>
             <span className="text-xs" style={{ color: '#555555' }}>Eng. Rate</span>
           </div>
         )}
@@ -129,12 +129,12 @@ function TweetCard({ post, isLoggedIn, isViral }) {
         />
         {isLoggedIn && (
           <div className="flex items-center gap-2 justify-end">
-            {saved && <span className="text-xs" style={{ color: '#FF7700' }}>Saved</span>}
+            {saved && <span className="text-xs" style={{ color: '#00e676' }}>Saved</span>}
             <button
               onClick={saveNote}
               disabled={saving}
               className="px-3 py-1 text-xs font-medium rounded-lg"
-              style={{ backgroundColor: '#FF7700', color: '#000', opacity: saving ? 0.6 : 1, cursor: saving ? 'not-allowed' : 'pointer' }}
+              style={{ backgroundColor: '#00e676', color: '#000', opacity: saving ? 0.6 : 1, cursor: saving ? 'not-allowed' : 'pointer' }}
             >
               {saving ? 'Saving…' : 'Save Note'}
             </button>
@@ -216,7 +216,7 @@ export default function TwitterFeed({ posts, competitors, isLoggedIn }) {
               onClick={() => setSortBy(opt.id)}
               className="px-3 py-1 text-xs font-medium rounded-full transition-all"
               style={sortBy === opt.id
-                ? { backgroundColor: '#FF7700', color: '#000' }
+                ? { backgroundColor: '#00e676', color: '#000' }
                 : { border: '1px solid #2d2d2d', color: '#888888' }
               }
             >
@@ -249,7 +249,7 @@ export default function TwitterFeed({ posts, competitors, isLoggedIn }) {
               onClick={() => setSelectedCompetitor(c)}
               className="px-3 py-1 text-xs font-medium rounded-full transition-all"
               style={active
-                ? { backgroundColor: c === 'All' ? '#FF7700' : color, color: '#000' }
+                ? { backgroundColor: c === 'All' ? '#00e676' : color, color: '#000' }
                 : { border: '1px solid #2d2d2d', color: '#888888' }
               }
             >

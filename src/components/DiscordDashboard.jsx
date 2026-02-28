@@ -125,7 +125,7 @@ function OverviewTab({ rise, risex }) {
             label="Open Tickets"
             value={totalTickets.toString()}
             sub={totalTickets > 0 ? 'Need attention' : 'All clear'}
-            color={totalTickets > 0 ? '#ef4444' : '#FF7700'}
+            color={totalTickets > 0 ? '#ef4444' : '#00e676'}
           />
         </Card>
       </div>
@@ -160,7 +160,7 @@ function OverviewTab({ rise, risex }) {
                     value={snap.previousMemberCount != null
                       ? (snap.netChange > 0 ? `+${snap.netChange}` : snap.netChange.toString())
                       : '—'}
-                    color={snap.netChange > 0 ? '#FF7700' : snap.netChange < 0 ? '#ef4444' : '#888888'}
+                    color={snap.netChange > 0 ? '#00e676' : snap.netChange < 0 ? '#ef4444' : '#888888'}
                     sub="vs yesterday"
                   />
                   <StatBox label="Messages (24h)" value={snap.messageCount24h?.toLocaleString()} />
@@ -288,7 +288,7 @@ function MembersTab({ rise, risex }) {
                     <div className="h-1 rounded-full" style={{ backgroundColor: '#2d2d2d' }}>
                       <div
                         className="h-1 rounded-full transition-all"
-                        style={{ width: `${pct}%`, backgroundColor: i < 3 ? '#FF7700' : DC }}
+                        style={{ width: `${pct}%`, backgroundColor: i < 3 ? '#00e676' : DC }}
                       />
                     </div>
                   </div>
@@ -335,7 +335,7 @@ function ChannelsTab({ rise, risex }) {
                     <div className="h-1 rounded-full" style={{ backgroundColor: '#2d2d2d' }}>
                       <div
                         className="h-1 rounded-full"
-                        style={{ width: `${pct}%`, backgroundColor: i === 0 ? '#FF7700' : DC }}
+                        style={{ width: `${pct}%`, backgroundColor: i === 0 ? '#00e676' : DC }}
                       />
                     </div>
                   </div>
@@ -514,7 +514,7 @@ function TrendsTab({ snapshots }) {
             <YAxis tick={{ fill: '#888888', fontSize: 10 }} axisLine={false} tickLine={false} width={50} />
             <Tooltip {...tooltipStyle} />
             <Legend wrapperStyle={{ fontSize: '11px', color: '#888888' }} />
-            <Line type="monotone" dataKey="RISE_members"  stroke="#FF7700" strokeWidth={2} dot={false} name="RISE" />
+            <Line type="monotone" dataKey="RISE_members"  stroke="#00e676" strokeWidth={2} dot={false} name="RISE" />
             <Line type="monotone" dataKey="RISEx_members" stroke={DC}       strokeWidth={2} dot={false} name="RISEx" />
           </LineChart>
         </ResponsiveContainer>
@@ -529,7 +529,7 @@ function TrendsTab({ snapshots }) {
             <YAxis tick={{ fill: '#888888', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
             <Tooltip {...tooltipStyle} />
             <Legend wrapperStyle={{ fontSize: '11px', color: '#888888' }} />
-            <Bar dataKey="RISE_messages"  fill="#FF7700" name="RISE"  radius={[2, 2, 0, 0]} />
+            <Bar dataKey="RISE_messages"  fill="#00e676" name="RISE"  radius={[2, 2, 0, 0]} />
             <Bar dataKey="RISEx_messages" fill={DC}      name="RISEx" radius={[2, 2, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
@@ -552,13 +552,13 @@ function TrendsTab({ snapshots }) {
                 <div className="flex gap-6">
                   <span>
                     <span style={{ color: '#555555' }}>RISE </span>
-                    <span style={{ color: riseNet > 0 ? '#FF7700' : riseNet < 0 ? '#ef4444' : '#888888' }}>
+                    <span style={{ color: riseNet > 0 ? '#00e676' : riseNet < 0 ? '#ef4444' : '#888888' }}>
                       {riseNet > 0 ? `+${riseNet}` : riseNet}
                     </span>
                   </span>
                   <span>
                     <span style={{ color: '#555555' }}>RISEx </span>
-                    <span style={{ color: risexNet > 0 ? '#FF7700' : risexNet < 0 ? '#ef4444' : '#888888' }}>
+                    <span style={{ color: risexNet > 0 ? '#00e676' : risexNet < 0 ? '#ef4444' : '#888888' }}>
                       {risexNet > 0 ? `+${risexNet}` : risexNet}
                     </span>
                   </span>
@@ -643,7 +643,7 @@ function TicketsTab({ rise, risex, resolvedIds, onResolve, isLoggedIn }) {
                     className="text-xs px-2 py-0.5 rounded"
                     style={
                       t.hasStaffReply
-                        ? { backgroundColor: 'rgba(255,119,0,0.1)', border: '1px solid rgba(255,119,0,0.2)', color: '#FF7700' }
+                        ? { backgroundColor: 'rgba(0,230,118,0.1)', border: '1px solid rgba(0,230,118,0.2)', color: '#00e676' }
                         : { backgroundColor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171' }
                     }
                   >
@@ -669,7 +669,7 @@ function TicketsTab({ rise, risex, resolvedIds, onResolve, isLoggedIn }) {
                     <button
                       onClick={() => onResolve(`${t.server}-${t.channelId}-${t.id}`)}
                       className="text-xs px-2.5 py-1 rounded-lg font-medium transition-all"
-                      style={{ backgroundColor: 'rgba(255,119,0,0.1)', border: '1px solid rgba(255,119,0,0.25)', color: '#FF7700' }}
+                      style={{ backgroundColor: 'rgba(0,230,118,0.1)', border: '1px solid rgba(0,230,118,0.25)', color: '#00e676' }}
                     >
                       ✓ Resolve
                     </button>

@@ -218,7 +218,7 @@ export default function ComparisonCharts({ posts, competitors }) {
                 <td className="px-4 py-3" style={{ color: '#888888' }}>{row.count ? row.views.toLocaleString() : '—'}</td>
                 <td className="px-4 py-3" style={{ color: '#888888' }}>{row.count ? row.likes.toLocaleString() : '—'}</td>
                 <td className="px-4 py-3" style={{ color: '#888888' }}>{row.count ? row.retweets?.toLocaleString() : '—'}</td>
-                <td className="px-4 py-3 font-medium" style={{ color: row.er > 0 ? '#FF7700' : '#555555' }}>
+                <td className="px-4 py-3 font-medium" style={{ color: row.er > 0 ? '#00e676' : '#555555' }}>
                   {row.count ? `${row.er}%` : '—'}
                 </td>
               </tr>

@@ -38,7 +38,7 @@ const S = {
   text: '#e8e8e8',
   sub: '#888888',
   muted: '#555555',
-  accent: '#FF7700',
+  accent: '#00e676',
 }
 
 function Card({ children, style = {} }) {
@@ -90,7 +90,7 @@ function PartnershipCard({ post }) {
           {isOwn && (
             <span
               className="text-xs px-2 py-0.5 rounded-full font-medium"
-              style={{ background: 'rgba(255,119,0,0.1)', color: '#FF7700', border: '1px solid rgba(255,119,0,0.2)' }}
+              style={{ background: 'rgba(0,230,118,0.1)', color: '#00e676', border: '1px solid rgba(0,230,118,0.2)' }}
             >
               ours
             </span>
@@ -251,13 +251,13 @@ export default function Partnerships({ allPosts, competitors }) {
             {countByCompetitor.map(([name, count]) => {
               const maxC = countByCompetitor[0][1] || 1
               const isOwn = OWN_ACCOUNTS.includes(name)
-              const color = isOwn ? (OWN_ACCOUNT_COLORS[name] || '#FF7700') : (COMPETITOR_COLORS[name] || '#6366f1')
+              const color = isOwn ? (OWN_ACCOUNT_COLORS[name] || '#00e676') : (COMPETITOR_COLORS[name] || '#6366f1')
               return (
                 <div key={name}>
                   <div className="flex justify-between items-center mb-1">
                     <div className="flex items-center gap-2">
                       <span className="text-xs" style={{ color: S.text }}>{name}</span>
-                      {isOwn && <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'rgba(255,119,0,0.1)', color: '#FF7700' }}>us</span>}
+                      {isOwn && <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,230,118,0.1)', color: '#00e676' }}>us</span>}
                     </div>
                     <span className="text-xs font-medium" style={{ color }}>{count}</span>
                   </div>
@@ -311,7 +311,7 @@ export default function Partnerships({ allPosts, competitors }) {
               className="text-xs px-3 py-1 rounded-lg font-medium transition-all"
               style={
                 showOwn
-                  ? { background: 'rgba(255,119,0,0.1)', color: '#FF7700', border: '1px solid rgba(255,119,0,0.2)' }
+                  ? { background: 'rgba(0,230,118,0.1)', color: '#00e676', border: '1px solid rgba(0,230,118,0.2)' }
                   : { color: S.muted, border: '1px solid rgba(255,255,255,0.06)' }
               }
             >

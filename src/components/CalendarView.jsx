@@ -158,7 +158,7 @@ export default function CalendarView({ posts, competitors }) {
                 style={{
                   backgroundColor: isSelected ? '#2d2d2d' : '#242424',
                   minHeight: 80,
-                  outline: isSelected ? '1px solid #FF7700' : isToday ? '1px solid #3d3d3d' : 'none',
+                  outline: isSelected ? '1px solid #00e676' : isToday ? '1px solid #3d3d3d' : 'none',
                   outlineOffset: '-1px',
                 }}
                 onMouseEnter={e => { if (!isSelected) e.currentTarget.style.backgroundColor = '#2a2a2a' }}
@@ -168,7 +168,7 @@ export default function CalendarView({ posts, competitors }) {
                   className="text-xs font-medium self-end mb-1 w-6 h-6 flex items-center justify-center rounded-full"
                   style={{
                     color: isToday ? '#000' : hasPost ? '#e8e8e8' : '#555555',
-                    backgroundColor: isToday ? '#FF7700' : 'transparent',
+                    backgroundColor: isToday ? '#00e676' : 'transparent',
                     fontWeight: isToday ? 700 : 500,
                   }}
                 >

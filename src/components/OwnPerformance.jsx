@@ -83,7 +83,7 @@ const S = {
   text: '#e8e8e8',
   sub: '#888888',
   muted: '#555555',
-  accent: '#FF7700',
+  accent: '#00e676',
 }
 
 // ─── components ───────────────────────────────────────────────────────────────
@@ -124,7 +124,7 @@ function PostRow({ post, rank, username }) {
     ? `https://x.com/${username}/status/${post.tweetId}`
     : post.postUrl || null
   const erVal = er(post)
-  const erColor = erVal > 2 ? '#FF7700' : erVal > 1 ? '#f59e0b' : S.sub
+  const erColor = erVal > 2 ? '#00e676' : erVal > 1 ? '#f59e0b' : S.sub
 
   return (
     <div
@@ -243,7 +243,7 @@ export default function OwnPerformance({ allPosts, competitors }) {
           label="RISE avg ER"
           value={`${riseER.toFixed(2)}%`}
           sub={riseER > compER ? `↑ ${(riseER - compER).toFixed(2)}% above comp avg` : `↓ ${(compER - riseER).toFixed(2)}% below comp avg`}
-          gradient="linear-gradient(135deg, rgba(255,119,0,0.1) 0%, rgba(255,119,0,0.04) 100%)"
+          gradient="linear-gradient(135deg, rgba(0,230,118,0.1) 0%, rgba(0,230,118,0.04) 100%)"
         />
         <GradientStat
           label="RISEx avg ER"
@@ -282,7 +282,7 @@ export default function OwnPerformance({ allPosts, competitors }) {
                 <YAxis tick={{ fill: S.muted, fontSize: 10 }} axisLine={false} tickLine={false} width={40} tickFormatter={v => `${v}%`} />
                 <Tooltip {...TOOLTIP_STYLE} formatter={v => [`${v.toFixed(3)}%`, '']} />
                 <Legend wrapperStyle={{ fontSize: 11, color: S.sub }} />
-                <Line type="monotone" dataKey="RISE" stroke="#FF7700" strokeWidth={2} dot={false} connectNulls name="RISE" />
+                <Line type="monotone" dataKey="RISE" stroke="#00e676" strokeWidth={2} dot={false} connectNulls name="RISE" />
                 <Line type="monotone" dataKey="RISEx" stroke="#6366f1" strokeWidth={2} dot={false} connectNulls name="RISEx" />
               </LineChart>
             </ResponsiveContainer>
@@ -357,7 +357,7 @@ export default function OwnPerformance({ allPosts, competitors }) {
                 className="px-3 py-1 text-xs font-medium rounded-lg transition-all"
                 style={
                   sortBy === k
-                    ? { background: 'rgba(255,119,0,0.12)', color: '#FF7700', border: '1px solid rgba(255,119,0,0.2)' }
+                    ? { background: 'rgba(0,230,118,0.12)', color: '#00e676', border: '1px solid rgba(0,230,118,0.2)' }
                     : { color: S.muted, border: '1px solid rgba(255,255,255,0.06)' }
                 }
               >

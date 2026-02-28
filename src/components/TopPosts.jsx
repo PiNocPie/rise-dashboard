@@ -26,7 +26,7 @@ function SortBtn({ field, current, dir, onClick, children }) {
     <button
       onClick={() => onClick(field)}
       className="flex items-center gap-1 text-xs font-medium transition-colors"
-      style={{ color: active ? '#FF7700' : '#888888' }}
+      style={{ color: active ? '#00e676' : '#888888' }}
     >
       {children}
       {active && <span style={{ fontSize: 9 }}>{dir === 'desc' ? '▼' : '▲'}</span>}
@@ -250,7 +250,7 @@ export default function TopPosts({ posts, allCompetitors, onDeletePost, isLogged
                     <td className="px-4 py-3 text-right text-xs tabular-nums" style={{ color: '#888888' }}>
                       {fmtNum(post.retweets)}
                     </td>
-                    <td className="px-4 py-3 text-right text-xs tabular-nums font-semibold" style={{ color: '#FF7700' }}>
+                    <td className="px-4 py-3 text-right text-xs tabular-nums font-semibold" style={{ color: '#00e676' }}>
                       {post._er > 0 ? `${post._er.toFixed(2)}%` : '—'}
                     </td>
                     <td className="px-4 py-3 text-center">

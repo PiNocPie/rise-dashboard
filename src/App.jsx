@@ -206,9 +206,9 @@ export default function App() {
     header:       '#141414',
     surface:      '#242424',
     border:       '#2d2d2d',
-    accent:       '#FF7700',
-    accentBg:     'rgba(255,119,0,0.1)',
-    accentBorder: 'rgba(255,119,0,0.3)',
+    accent:       '#00e676',
+    accentBg:     'rgba(0,230,118,0.1)',
+    accentBorder: 'rgba(0,230,118,0.3)',
     text:         '#e8e8e8',
     sub:          '#888888',
     muted:        '#555555',
@@ -229,18 +229,6 @@ export default function App() {
           <div className="flex items-center justify-between" style={{ height: 52 }}>
             {/* Logo */}
             <div className="flex items-center gap-2.5">
-              <div
-                style={{
-                  width: 28, height: 28,
-                  background: D.accent,
-                  borderRadius: 6,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 14, fontWeight: 700, color: '#fff',
-                  flexShrink: 0,
-                }}
-              >
-                R
-              </div>
               <div>
                 <span className="font-semibold text-sm" style={{ color: D.text }}>RISE Intel</span>
                 <span className="text-xs ml-2" style={{ color: D.muted }}>by Thaiji</span>
@@ -457,7 +445,7 @@ export default function App() {
           <div
             className="px-4 py-2.5 rounded text-xs"
             style={{
-              backgroundColor: syncMsg.startsWith('Sync failed') ? 'rgba(239,68,68,0.1)' : 'rgba(255,119,0,0.08)',
+              backgroundColor: syncMsg.startsWith('Sync failed') ? 'rgba(239,68,68,0.1)' : 'rgba(0,230,118,0.08)',
               border: `1px solid ${syncMsg.startsWith('Sync failed') ? 'rgba(239,68,68,0.3)' : D.accentBorder}`,
               color: syncMsg.startsWith('Sync failed') ? '#f87171' : D.accent,
             }}
@@ -487,7 +475,7 @@ export default function App() {
           <div
             className="px-4 py-2.5 rounded text-xs"
             style={{
-              backgroundColor: importMsg.startsWith('Import failed') ? 'rgba(239,68,68,0.1)' : 'rgba(255,119,0,0.08)',
+              backgroundColor: importMsg.startsWith('Import failed') ? 'rgba(239,68,68,0.1)' : 'rgba(0,230,118,0.08)',
               border: `1px solid ${importMsg.startsWith('Import failed') ? 'rgba(239,68,68,0.3)' : D.accentBorder}`,
               color: importMsg.startsWith('Import failed') ? '#f87171' : D.accent,
             }}

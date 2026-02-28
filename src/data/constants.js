@@ -82,7 +82,7 @@ export const DISCORD_SERVERS = [
 export const OWN_ACCOUNTS = ['RISE', 'RISEx']
 
 export const OWN_ACCOUNT_COLORS = {
-  RISE: '#FF7700',
+  RISE: '#00e676',
   RISEx: '#6366f1',
 }
 

@@ -124,7 +124,7 @@ function CompetitorCard({ competitor, posts, color }) {
       <div className="grid grid-cols-2 gap-2">
         <Stat label="Avg Views" value={avgViews} />
         <Stat label="Avg Likes" value={avgLikes} />
-        <Stat label="Avg ER" value={posts.length ? `${avgER}%` : '—'} accent={posts.length ? '#FF7700' : undefined} />
+        <Stat label="Avg ER" value={posts.length ? `${avgER}%` : '—'} accent={posts.length ? '#00e676' : undefined} />
         <Stat label="Posts / wk" value={freq} />
       </div>
 
@@ -184,7 +184,7 @@ function HotThisWeek({ posts }) {
               className="flex items-start gap-3 px-4 py-3 rounded-lg"
               style={{ backgroundColor: '#242424', border: '1px solid #2d2d2d' }}
             >
-              <span className="text-sm font-bold w-5 text-center flex-shrink-0" style={{ color: i === 0 ? '#FF7700' : '#444' }}>
+              <span className="text-sm font-bold w-5 text-center flex-shrink-0" style={{ color: i === 0 ? '#00e676' : '#444' }}>
                 {i + 1}
               </span>
               <div className="flex-1 min-w-0">
@@ -198,7 +198,7 @@ function HotThisWeek({ posts }) {
               <div className="flex flex-col items-end gap-1 flex-shrink-0 text-right">
                 <span className="text-sm font-bold" style={{ color: '#e8e8e8' }}>{fmtNum(post.views)}</span>
                 <span className="text-xs" style={{ color: '#555' }}>views</span>
-                {er && <span className="text-xs font-medium" style={{ color: '#FF7700' }}>{er}% ER</span>}
+                {er && <span className="text-xs font-medium" style={{ color: '#00e676' }}>{er}% ER</span>}
               </div>
               {tweetUrl && (
                 <a
@@ -271,7 +271,7 @@ export default function Dashboard({ posts, competitors }) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <GlobalStat label="Total Posts" value={totalPosts} />
         <GlobalStat label="Avg Views" value={avgViews} />
-        <GlobalStat label="Avg Eng. Rate" value={`${avgER}%`} accent="#FF7700" />
+        <GlobalStat label="Avg Eng. Rate" value={`${avgER}%`} accent="#00e676" />
         <GlobalStat label="Most Viral Tweet" value={mostViral} sub={viralCompetitor} accent="#f59e0b" />
       </div>
 

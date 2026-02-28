@@ -28,8 +28,8 @@ function sentiment(text) {
   return 'neutral'
 }
 
-const SENT_COLOR = { positive: '#FF7700', negative: '#ef4444', neutral: '#6b7280' }
-const SENT_BG    = { positive: 'rgba(255,119,0,0.08)', negative: 'rgba(239,68,68,0.08)', neutral: 'rgba(107,114,128,0.08)' }
+const SENT_COLOR = { positive: '#00e676', negative: '#ef4444', neutral: '#6b7280' }
+const SENT_BG    = { positive: 'rgba(0,230,118,0.08)', negative: 'rgba(239,68,68,0.08)', neutral: 'rgba(107,114,128,0.08)' }
 
 // ─── design tokens ────────────────────────────────────────────────────────────
 
@@ -39,7 +39,7 @@ const S = {
   text: '#e8e8e8',
   sub: '#888888',
   muted: '#555555',
-  accent: '#FF7700',
+  accent: '#00e676',
 }
 
 function Card({ children, style = {} }) {
@@ -63,8 +63,8 @@ function MentionCard({ mention }) {
     : null
   const sent = sentiment(mention.text)
   const erVal = er(mention)
-  const erColor = erVal > 2 ? '#FF7700' : erVal > 0.5 ? '#f59e0b' : S.sub
-  const accountColor = mention.mentionedAccount === 'RISE' ? '#FF7700' : '#6366f1'
+  const erColor = erVal > 2 ? '#00e676' : erVal > 0.5 ? '#f59e0b' : S.sub
+  const accountColor = mention.mentionedAccount === 'RISE' ? '#00e676' : '#6366f1'
 
   return (
     <div
@@ -207,7 +207,7 @@ export default function Mentions({ dateFrom, dateTo }) {
           <div className="grid grid-cols-4 gap-3">
             <Card>
               <div className="text-xs uppercase tracking-wider mb-2" style={{ color: S.muted }}>RISE Mentions</div>
-              <div className="text-3xl font-bold" style={{ color: '#FF7700' }}>{riseCount}</div>
+              <div className="text-3xl font-bold" style={{ color: '#00e676' }}>{riseCount}</div>
             </Card>
             <Card>
               <div className="text-xs uppercase tracking-wider mb-2" style={{ color: S.muted }}>RISEx Mentions</div>
@@ -215,14 +215,14 @@ export default function Mentions({ dateFrom, dateTo }) {
             </Card>
             <Card>
               <div className="text-xs uppercase tracking-wider mb-2" style={{ color: S.muted }}>Sentiment Score</div>
-              <div className="text-3xl font-bold" style={{ color: sentRatio > 60 ? '#FF7700' : sentRatio > 40 ? '#f59e0b' : '#ef4444' }}>
+              <div className="text-3xl font-bold" style={{ color: sentRatio > 60 ? '#00e676' : sentRatio > 40 ? '#f59e0b' : '#ef4444' }}>
                 {sentRatio}%
               </div>
               <div className="text-xs mt-1" style={{ color: S.sub }}>positive of {filtered.length}</div>
             </Card>
             <Card>
               <div className="text-xs uppercase tracking-wider mb-2" style={{ color: S.muted }}>Negative Flags</div>
-              <div className="text-3xl font-bold" style={{ color: negCount > 0 ? '#ef4444' : '#FF7700' }}>{negCount}</div>
+              <div className="text-3xl font-bold" style={{ color: negCount > 0 ? '#ef4444' : '#00e676' }}>{negCount}</div>
               <div className="text-xs mt-1" style={{ color: S.sub }}>need attention</div>
             </Card>
           </div>
@@ -237,7 +237,7 @@ export default function Mentions({ dateFrom, dateTo }) {
                   className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
                   style={
                     filterAccount === k
-                      ? { background: 'rgba(255,119,0,0.1)', color: S.accent, border: '1px solid rgba(255,119,0,0.25)' }
+                      ? { background: 'rgba(0,230,118,0.1)', color: S.accent, border: '1px solid rgba(0,230,118,0.25)' }
                       : { color: S.muted, border: `1px solid ${S.border}` }
                   }
                 >
