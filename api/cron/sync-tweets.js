@@ -47,6 +47,67 @@ function classifyTweet(text) {
   return 'Other'
 }
 
+// ─── Mentions sync ─────────────────────────────────────────────────────────────
+// Stores tweets mentioning @risechain / @risextrade (not from own accounts) to
+// the `mentions` Firestore collection. Runs as part of the daily cron.
+
+const MENTION_TARGETS = [
+  { account: 'RISE',  username: 'risechain',   query: '(@risechain OR "rise chain") -from:risechain -from:risextrade -is:retweet' },
+  { account: 'RISEx', username: 'risextrade',  query: '(@risextrade OR "risex") -from:risechain -from:risextrade -is:retweet' },
+]
+
+async function syncMentions(db, BEARER, startTime, endTime) {
+  const added = { RISE: 0, RISEx: 0 }
+  for (const target of MENTION_TARGETS) {
+    try {
+      const params = new URLSearchParams({
+        query: target.query,
+        'tweet.fields': 'public_metrics,created_at,text,author_id',
+        'expansions': 'author_id',
+        'user.fields': 'name,username',
+        max_results: '100',
+        start_time: startTime,
+        end_time: endTime,
+      })
+      const resp = await fetch(`https://api.twitter.com/2/tweets/search/recent?${params}`, {
+        headers: { Authorization: `Bearer ${BEARER}` },
+      })
+      const data = await resp.json()
+      const tweets = data.data || []
+      const users = (data.includes?.users || []).reduce((m, u) => { m[u.id] = u; return m }, {})
+
+      for (const tweet of tweets) {
+        const docId = `mention_${tweet.id}`
+        const docRef = db.collection('mentions').doc(docId)
+        const existing = await docRef.get()
+        if (existing.exists) continue
+
+        const author = users[tweet.author_id] || {}
+        const m = tweet.public_metrics || {}
+        await docRef.set({
+          id: docId,
+          tweetId: tweet.id,
+          mentionedAccount: target.account,
+          authorId: tweet.author_id,
+          authorUsername: author.username || '',
+          authorName: author.name || '',
+          text: tweet.text,
+          views: m.impression_count || 0,
+          likes: m.like_count || 0,
+          retweets: m.retweet_count || 0,
+          replies: m.reply_count || 0,
+          createdAt: tweet.created_at,
+          syncedAt: new Date().toISOString(),
+        })
+        added[target.account]++
+      }
+    } catch (err) {
+      console.error(`Mentions sync error for ${target.account}:`, err.message)
+    }
+  }
+  return added
+}
+
 async function fetchTweets(username, startTime, endTime) {
   const params = new URLSearchParams({
     query: `from:${username} -is:retweet -is:reply`,
@@ -157,6 +218,10 @@ export default async function handler(req, res) {
   }
 
   console.log('Tweet sync complete:', results)
+
+  // Sync RISE/RISEx mentions from external accounts
+  const mentionsAdded = await syncMentions(db, BEARER, startTime, endTime)
+  console.log('Mentions sync complete:', mentionsAdded)
 
   // Send Slack digest if webhook is configured
   const slackWebhook = process.env.SLACK_WEBHOOK_URL

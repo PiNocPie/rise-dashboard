@@ -10,16 +10,22 @@ import ContentTheme from './components/ContentTheme'
 import TopPosts from './components/TopPosts'
 import CalendarView from './components/CalendarView'
 import ActivityChart from './components/ActivityChart'
+import OwnPerformance from './components/OwnPerformance'
+import Partnerships from './components/Partnerships'
+import Mentions from './components/Mentions'
 import DiscordDashboard from './components/DiscordDashboard'
 
 const TABS = [
-  { id: 'dashboard', label: 'Overview' },
-  { id: 'activity', label: 'Activity' },
-  { id: 'updates', label: 'Updates' },
-  { id: 'comparison', label: 'Comparisons' },
-  { id: 'themes', label: 'Content Themes' },
-  { id: 'posts', label: 'All Posts' },
-  { id: 'calendar', label: 'Calendar' },
+  { id: 'dashboard',    label: 'Overview' },
+  { id: 'activity',     label: 'Activity' },
+  { id: 'own',          label: 'Our Posts' },
+  { id: 'mentions',     label: 'Mentions' },
+  { id: 'updates',      label: 'Updates' },
+  { id: 'ecosystem',    label: 'Ecosystem' },
+  { id: 'comparison',   label: 'Comparisons' },
+  { id: 'themes',       label: 'Themes' },
+  { id: 'posts',        label: 'All Posts' },
+  { id: 'calendar',     label: 'Calendar' },
 ]
 
 export default function App() {
@@ -157,37 +163,65 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#000', color: '#e2e8f0' }}>
-      <header style={{ backgroundColor: '#050505', borderBottom: '1px solid #111' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#000', color: '#f0f4ff' }}>
+      <header
+        style={{
+          background: 'rgba(0,0,0,0.85)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 40,
+        }}
+      >
         <div className="max-w-screen-xl mx-auto px-6">
-          <div className="flex items-center justify-between py-4">
+          <div className="flex items-center justify-between py-3.5">
+            {/* Logo */}
             <div className="flex items-center gap-3">
               <div
-                className="flex items-center justify-center w-8 h-8 rounded text-lg"
-                style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e' }}
+                className="flex items-center justify-center w-8 h-8 rounded-xl text-base font-bold"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0,230,118,0.2) 0%, rgba(99,102,241,0.2) 100%)',
+                  border: '1px solid rgba(0,230,118,0.25)',
+                  color: '#00e676',
+                }}
               >
-                🔔
+                ⚡
               </div>
               <div>
-                <div className="font-bold text-base tracking-tight text-white">
-                  RISE Intel Powered by Thaiji 🤖
+                <div
+                  className="font-bold text-sm tracking-tight"
+                  style={{
+                    background: 'linear-gradient(135deg, #f0f4ff 0%, #9ca3af 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
+                >
+                  RISE Intel
+                  <span className="ml-2 text-xs font-normal" style={{ WebkitTextFillColor: '#4b5563', color: '#4b5563' }}>
+                    by Thaiji
+                  </span>
                 </div>
-                <div className="text-xs" style={{ color: '#4b5563' }}>Competitor Content Tracker</div>
+                <div className="text-xs" style={{ color: '#374151' }}>
+                  {posts.length > 0 ? `${posts.length} posts tracked` : 'Competitor Intelligence'}
+                </div>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
               {/* Platform toggle */}
               <div
-                className="flex items-center gap-0.5 p-0.5 rounded-lg"
-                style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e' }}
+                className="flex items-center gap-0.5 p-0.5 rounded-xl"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
               >
                 <button
                   onClick={() => setPlatform('twitter')}
-                  className="px-3 py-1.5 text-xs font-medium rounded transition-all"
+                  className="px-3 py-1.5 text-xs font-semibold rounded-lg transition-all"
                   style={
                     platform === 'twitter'
-                      ? { backgroundColor: '#00e676', color: '#000' }
+                      ? { background: 'linear-gradient(135deg, #00e676, #00c853)', color: '#000', boxShadow: '0 0 12px rgba(0,230,118,0.3)' }
                       : { color: '#6b7280' }
                   }
                 >
@@ -195,10 +229,10 @@ export default function App() {
                 </button>
                 <button
                   onClick={() => setPlatform('discord')}
-                  className="px-3 py-1.5 text-xs font-medium rounded transition-all"
+                  className="px-3 py-1.5 text-xs font-semibold rounded-lg transition-all"
                   style={
                     platform === 'discord'
-                      ? { backgroundColor: '#5865F2', color: '#fff' }
+                      ? { background: '#5865F2', color: '#fff', boxShadow: '0 0 12px rgba(88,101,242,0.3)' }
                       : { color: '#6b7280' }
                   }
                 >
@@ -206,96 +240,101 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Date/time range filter — shown for both platforms */}
-              <div className="flex items-center gap-1.5">
+              {/* Date/time range */}
+              <div
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl"
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+              >
                 <input
                   type="datetime-local"
                   value={dateFrom}
                   onChange={e => setDateFrom(e.target.value)}
-                  className="px-2 py-1.5 text-xs rounded-lg"
-                  style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e', color: dateFrom ? '#e2e8f0' : '#4b5563', cursor: 'pointer' }}
+                  className="text-xs"
+                  style={{ background: 'transparent', border: 'none', color: dateFrom ? '#f0f4ff' : '#374151', outline: 'none', cursor: 'pointer', width: 140 }}
                 />
-                <span className="text-xs" style={{ color: '#4b5563' }}>→</span>
+                <span className="text-xs" style={{ color: '#374151' }}>→</span>
                 <input
                   type="datetime-local"
                   value={dateTo}
                   onChange={e => setDateTo(e.target.value)}
-                  className="px-2 py-1.5 text-xs rounded-lg"
-                  style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e', color: dateTo ? '#e2e8f0' : '#4b5563', cursor: 'pointer' }}
+                  className="text-xs"
+                  style={{ background: 'transparent', border: 'none', color: dateTo ? '#f0f4ff' : '#374151', outline: 'none', cursor: 'pointer', width: 140 }}
                 />
                 {(dateFrom || dateTo) && (
-                  <button
-                    onClick={clearDates}
-                    className="px-2 py-1.5 text-xs rounded-lg"
-                    style={{ border: '1px solid #1a1a2e', color: '#6b7280', cursor: 'pointer' }}
-                  >
-                    ✕
-                  </button>
+                  <button onClick={clearDates} className="text-xs ml-1" style={{ color: '#4b5563' }}>✕</button>
                 )}
               </div>
 
-              {/* Twitter-specific controls */}
-              {platform === 'twitter' && (
+              {/* Twitter controls */}
+              {platform === 'twitter' && isLoggedIn && (
                 <>
-                  {isLoggedIn && (
-                    <>
-                      <button
-                        onClick={handleSync}
-                        disabled={syncing}
-                        className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
-                        style={{ border: '1px solid #1a1a2e', color: syncing ? '#4b5563' : '#9ca3af', cursor: syncing ? 'not-allowed' : 'pointer' }}
-                      >
-                        {syncing ? '⟳ Syncing…' : '⟳ Sync Now'}
-                      </button>
-                      <button
-                        onClick={handleExport}
-                        disabled={posts.length === 0}
-                        className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
-                        style={{
-                          border: '1px solid #1a1a2e',
-                          color: posts.length === 0 ? '#374151' : '#9ca3af',
-                          cursor: posts.length === 0 ? 'not-allowed' : 'pointer',
-                        }}
-                      >
-                        ↓ Export CSV
-                      </button>
-                      <label
-                        className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer"
-                        style={{ border: '1px solid #1a1a2e', color: '#9ca3af' }}
-                      >
-                        ↑ Import CSV
-                        <input ref={importRef} type="file" accept=".csv" className="hidden" onChange={handleImport} />
-                      </label>
-                    </>
-                  )}
+                  <button
+                    onClick={handleSync}
+                    disabled={syncing}
+                    className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
+                    style={{ border: '1px solid rgba(255,255,255,0.08)', color: syncing ? '#374151' : '#9ca3af' }}
+                  >
+                    {syncing ? '⟳ Syncing…' : '⟳ Sync'}
+                  </button>
+                  <button
+                    onClick={handleExport}
+                    disabled={posts.length === 0}
+                    className="px-3 py-1.5 text-xs font-medium rounded-lg"
+                    style={{ border: '1px solid rgba(255,255,255,0.08)', color: posts.length === 0 ? '#374151' : '#9ca3af' }}
+                  >
+                    ↓ CSV
+                  </button>
+                  <label
+                    className="px-3 py-1.5 text-xs font-medium rounded-lg cursor-pointer"
+                    style={{ border: '1px solid rgba(255,255,255,0.08)', color: '#9ca3af' }}
+                  >
+                    ↑ CSV
+                    <input ref={importRef} type="file" accept=".csv" className="hidden" onChange={handleImport} />
+                  </label>
                 </>
               )}
-              {/* end Twitter-specific */}
 
               <button
                 onClick={() => isLoggedIn ? setIsLoggedIn(false) : (setShowLogin(true), setLoginPassword(''), setLoginError(''))}
-                className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
-                style={{ border: '1px solid #1a1a2e', color: isLoggedIn ? '#00e676' : '#9ca3af', cursor: 'pointer' }}
+                className="px-3 py-1.5 text-xs font-semibold rounded-lg transition-all"
+                style={
+                  isLoggedIn
+                    ? { background: 'rgba(0,230,118,0.1)', border: '1px solid rgba(0,230,118,0.2)', color: '#00e676' }
+                    : { border: '1px solid rgba(255,255,255,0.08)', color: '#6b7280' }
+                }
               >
-                {isLoggedIn ? '🔓 Logout' : '🔒 Login'}
+                {isLoggedIn ? '🔓 Logged in' : '🔒 Login'}
               </button>
             </div>
           </div>
 
           {platform === 'twitter' && (
-            <div className="flex">
+            <div className="flex overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
               {TABS.map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => handleTabClick(tab.id)}
-                  className="px-5 py-3 text-sm font-medium border-b-2 transition-all"
+                  className="px-4 py-3 text-xs font-semibold whitespace-nowrap transition-all relative"
                   style={
                     activeTab === tab.id
-                      ? { borderColor: '#00e676', color: '#00e676' }
-                      : { borderColor: 'transparent', color: '#6b7280' }
+                      ? { color: '#00e676' }
+                      : { color: '#4b5563' }
                   }
                 >
                   {tab.label}
+                  {activeTab === tab.id && (
+                    <span
+                      style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 12,
+                        right: 12,
+                        height: 2,
+                        background: 'linear-gradient(90deg, #00e676, #00b4d8)',
+                        borderRadius: 2,
+                      }}
+                    />
+                  )}
                 </button>
               ))}
             </div>
@@ -400,32 +439,16 @@ export default function App() {
         </div>
       ) : (
         <main className="max-w-screen-xl mx-auto px-6 py-8">
-          {activeTab === 'activity' && (
-            <ActivityChart posts={posts} competitors={competitors} />
-          )}
-          {activeTab === 'updates' && (
-            <TwitterFeed posts={filteredPosts} competitors={competitors} isLoggedIn={isLoggedIn} />
-          )}
-          {activeTab === 'dashboard' && (
-            <Dashboard posts={filteredPosts} competitors={competitors} />
-          )}
-          {activeTab === 'comparison' && (
-            <ComparisonCharts posts={filteredPosts} competitors={competitors} />
-          )}
-          {activeTab === 'themes' && (
-            <ContentTheme posts={filteredPosts} competitors={competitors} />
-          )}
-          {activeTab === 'posts' && (
-            <TopPosts
-              posts={filteredPosts}
-              allCompetitors={competitors}
-              onDeletePost={handleDeletePost}
-              isLoggedIn={isLoggedIn}
-            />
-          )}
-          {activeTab === 'calendar' && (
-            <CalendarView posts={filteredPosts} competitors={competitors} />
-          )}
+          {activeTab === 'activity'   && <ActivityChart posts={posts} competitors={competitors} />}
+          {activeTab === 'updates'    && <TwitterFeed posts={filteredPosts} competitors={competitors} isLoggedIn={isLoggedIn} />}
+          {activeTab === 'dashboard'  && <Dashboard posts={filteredPosts} competitors={competitors} />}
+          {activeTab === 'comparison' && <ComparisonCharts posts={filteredPosts} competitors={competitors} />}
+          {activeTab === 'themes'     && <ContentTheme posts={filteredPosts} competitors={competitors} />}
+          {activeTab === 'posts'      && <TopPosts posts={filteredPosts} allCompetitors={competitors} onDeletePost={handleDeletePost} isLoggedIn={isLoggedIn} />}
+          {activeTab === 'calendar'   && <CalendarView posts={filteredPosts} competitors={competitors} />}
+          {activeTab === 'own'        && <OwnPerformance allPosts={posts} competitors={competitors} />}
+          {activeTab === 'ecosystem'  && <Partnerships allPosts={posts} competitors={competitors} />}
+          {activeTab === 'mentions'   && <Mentions dateFrom={dateFrom} dateTo={dateTo} />}
         </main>
       )}
     </div>
