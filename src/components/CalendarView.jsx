@@ -67,12 +67,12 @@ export default function CalendarView({ posts, competitors }) {
   const selectedPosts = selectedKey ? (postsByDate[selectedKey] || []) : []
 
   const selectStyle = {
-    backgroundColor: '#11111e',
-    border: '1px solid #1a1a2e',
+    backgroundColor: '#242424',
+    border: '1px solid #2d2d2d',
     borderRadius: '8px',
     padding: '6px 10px',
     fontSize: '13px',
-    color: '#9ca3af',
+    color: '#888888',
     outline: 'none',
     cursor: 'pointer',
   }
@@ -83,7 +83,7 @@ export default function CalendarView({ posts, competitors }) {
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h2 className="text-xl font-bold text-white">Activity Calendar</h2>
-          <p className="text-sm mt-0.5" style={{ color: '#6b7280' }}>
+          <p className="text-sm mt-0.5" style={{ color: '#888888' }}>
             Competitor content logged per day
           </p>
         </div>
@@ -100,15 +100,15 @@ export default function CalendarView({ posts, competitors }) {
       </div>
 
       {/* Calendar card */}
-      <div className="rounded-xl overflow-hidden" style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e' }}>
+      <div className="rounded-lg overflow-hidden" style={{ backgroundColor: '#242424', border: '1px solid #2d2d2d' }}>
         {/* Month nav */}
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid #1a1a2e' }}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid #2d2d2d' }}>
           <button
             onClick={prevMonth}
             className="w-8 h-8 flex items-center justify-center rounded-lg text-sm transition-colors"
-            style={{ color: '#6b7280', backgroundColor: '#0d0d1a', border: '1px solid #1a1a2e' }}
-            onMouseEnter={e => e.currentTarget.style.color = '#e2e8f0'}
-            onMouseLeave={e => e.currentTarget.style.color = '#6b7280'}
+            style={{ color: '#888888', backgroundColor: '#1e1e1e', border: '1px solid #2d2d2d' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#e8e8e8'}
+            onMouseLeave={e => e.currentTarget.style.color = '#888888'}
           >
             ‹
           </button>
@@ -118,9 +118,9 @@ export default function CalendarView({ posts, competitors }) {
           <button
             onClick={nextMonth}
             className="w-8 h-8 flex items-center justify-center rounded-lg text-sm transition-colors"
-            style={{ color: '#6b7280', backgroundColor: '#0d0d1a', border: '1px solid #1a1a2e' }}
-            onMouseEnter={e => e.currentTarget.style.color = '#e2e8f0'}
-            onMouseLeave={e => e.currentTarget.style.color = '#6b7280'}
+            style={{ color: '#888888', backgroundColor: '#1e1e1e', border: '1px solid #2d2d2d' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#e8e8e8'}
+            onMouseLeave={e => e.currentTarget.style.color = '#888888'}
           >
             ›
           </button>
@@ -129,17 +129,17 @@ export default function CalendarView({ posts, competitors }) {
         {/* Day headers */}
         <div className="grid grid-cols-7 px-3 pt-3 pb-1">
           {DAYS.map(d => (
-            <div key={d} className="text-center text-xs font-medium uppercase tracking-wider py-1" style={{ color: '#4b5563' }}>
+            <div key={d} className="text-center text-xs font-medium uppercase tracking-wider py-1" style={{ color: '#555555' }}>
               {d}
             </div>
           ))}
         </div>
 
         {/* Calendar grid */}
-        <div className="grid grid-cols-7 gap-px px-3 pb-3" style={{ backgroundColor: '#1a1a2e' }}>
+        <div className="grid grid-cols-7 gap-px px-3 pb-3" style={{ backgroundColor: '#2d2d2d' }}>
           {cells.map((day, i) => {
             if (!day) {
-              return <div key={`empty-${i}`} style={{ backgroundColor: '#11111e', minHeight: 80 }} />
+              return <div key={`empty-${i}`} style={{ backgroundColor: '#242424', minHeight: 80 }} />
             }
             const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
             const dayPosts = postsByDate[dateKey] || []
@@ -156,19 +156,19 @@ export default function CalendarView({ posts, competitors }) {
                 onClick={() => setSelectedDay(isSelected ? null : day)}
                 className="flex flex-col p-1.5 cursor-pointer transition-all"
                 style={{
-                  backgroundColor: isSelected ? '#1a1a2e' : '#11111e',
+                  backgroundColor: isSelected ? '#2d2d2d' : '#242424',
                   minHeight: 80,
-                  outline: isSelected ? '1px solid #00e676' : isToday ? '1px solid #1a1a3e' : 'none',
+                  outline: isSelected ? '1px solid #FF7700' : isToday ? '1px solid #3d3d3d' : 'none',
                   outlineOffset: '-1px',
                 }}
-                onMouseEnter={e => { if (!isSelected) e.currentTarget.style.backgroundColor = '#13131f' }}
-                onMouseLeave={e => { if (!isSelected) e.currentTarget.style.backgroundColor = '#11111e' }}
+                onMouseEnter={e => { if (!isSelected) e.currentTarget.style.backgroundColor = '#2a2a2a' }}
+                onMouseLeave={e => { if (!isSelected) e.currentTarget.style.backgroundColor = '#242424' }}
               >
                 <span
                   className="text-xs font-medium self-end mb-1 w-6 h-6 flex items-center justify-center rounded-full"
                   style={{
-                    color: isToday ? '#000' : hasPost ? '#e2e8f0' : '#4b5563',
-                    backgroundColor: isToday ? '#00e676' : 'transparent',
+                    color: isToday ? '#000' : hasPost ? '#e8e8e8' : '#555555',
+                    backgroundColor: isToday ? '#FF7700' : 'transparent',
                     fontWeight: isToday ? 700 : 500,
                   }}
                 >
@@ -194,7 +194,7 @@ export default function CalendarView({ posts, competitors }) {
                       </div>
                     ))}
                     {dayPosts.length > uniqueComps.length && (
-                      <span className="text-xs" style={{ color: '#4b5563', fontSize: 10 }}>+{dayPosts.length - uniqueComps.length}</span>
+                      <span className="text-xs" style={{ color: '#555555', fontSize: 10 }}>+{dayPosts.length - uniqueComps.length}</span>
                     )}
                   </div>
                 )}
@@ -202,7 +202,7 @@ export default function CalendarView({ posts, competitors }) {
                 {/* Post count badge */}
                 {dayPosts.length > 1 && (
                   <div className="mt-0.5">
-                    <span className="text-xs" style={{ color: '#4b5563', fontSize: 10 }}>
+                    <span className="text-xs" style={{ color: '#555555', fontSize: 10 }}>
                       {dayPosts.length} posts
                     </span>
                   </div>
@@ -215,25 +215,25 @@ export default function CalendarView({ posts, competitors }) {
 
       {/* Selected day detail panel */}
       {selectedDay && (
-        <div className="mt-4 rounded-xl overflow-hidden" style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e' }}>
-          <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid #1a1a2e' }}>
+        <div className="mt-4 rounded-lg overflow-hidden" style={{ backgroundColor: '#242424', border: '1px solid #2d2d2d' }}>
+          <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid #2d2d2d' }}>
             <span className="font-semibold text-white text-sm">
               {MONTHS[month]} {selectedDay}, {year}
             </span>
-            <span className="text-xs" style={{ color: '#6b7280' }}>
+            <span className="text-xs" style={{ color: '#888888' }}>
               {selectedPosts.length} post{selectedPosts.length !== 1 ? 's' : ''}
             </span>
           </div>
 
           {selectedPosts.length === 0 ? (
-            <div className="px-5 py-8 text-center text-sm" style={{ color: '#374151' }}>
+            <div className="px-5 py-8 text-center text-sm" style={{ color: '#555555' }}>
               No posts logged for this day
             </div>
           ) : (
-            <div className="divide-y" style={{ borderColor: '#1a1a2e' }}>
+            <div className="divide-y" style={{ borderColor: '#2d2d2d' }}>
               {selectedPosts.map((post, i) => {
                 const compColor = COMPETITOR_COLORS[post.competitor] || '#6366f1'
-                const catColor = CATEGORY_COLORS[post.category] || '#4b5563'
+                const catColor = CATEGORY_COLORS[post.category] || '#555555'
                 return (
                   <div key={post.id || i} className="px-5 py-3 flex items-start gap-3">
                     <div className="w-1 self-stretch rounded-full flex-shrink-0 mt-0.5" style={{ backgroundColor: compColor }} />
@@ -263,11 +263,11 @@ export default function CalendarView({ posts, competitors }) {
                         )}
                       </div>
                       {post.postText && (
-                        <p className="text-xs leading-relaxed" style={{ color: '#9ca3af' }}>
+                        <p className="text-xs leading-relaxed" style={{ color: '#888888' }}>
                           {post.postText.length > 200 ? post.postText.slice(0, 200) + '…' : post.postText}
                         </p>
                       )}
-                      <div className="flex items-center gap-3 mt-1.5 text-xs" style={{ color: '#4b5563' }}>
+                      <div className="flex items-center gap-3 mt-1.5 text-xs" style={{ color: '#555555' }}>
                         {post.views > 0 && <span>{post.views.toLocaleString()} views</span>}
                         {post.likes > 0 && <span>{post.likes.toLocaleString()} likes</span>}
                         {post.retweets > 0 && <span>{post.retweets.toLocaleString()} RTs</span>}

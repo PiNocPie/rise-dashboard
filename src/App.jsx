@@ -200,131 +200,138 @@ export default function App() {
     e.target.value = ''
   }
 
+  // Dune-style design tokens
+  const D = {
+    bg:           '#1a1a1a',
+    header:       '#141414',
+    surface:      '#242424',
+    border:       '#2d2d2d',
+    accent:       '#FF7700',
+    accentBg:     'rgba(255,119,0,0.1)',
+    accentBorder: 'rgba(255,119,0,0.3)',
+    text:         '#e8e8e8',
+    sub:          '#888888',
+    muted:        '#555555',
+  }
+
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#000', color: '#f0f4ff' }}>
+    <div className="min-h-screen" style={{ backgroundColor: D.bg, color: D.text }}>
       <header
         style={{
-          background: 'rgba(0,0,0,0.85)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          background: D.header,
+          borderBottom: `1px solid ${D.border}`,
           position: 'sticky',
           top: 0,
           zIndex: 40,
         }}
       >
         <div className="max-w-screen-xl mx-auto px-6">
-          <div className="flex items-center justify-between py-3.5">
+          <div className="flex items-center justify-between" style={{ height: 52 }}>
             {/* Logo */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <div
-                className="flex items-center justify-center w-8 h-8 rounded-xl text-base font-bold"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(0,230,118,0.2) 0%, rgba(99,102,241,0.2) 100%)',
-                  border: '1px solid rgba(0,230,118,0.25)',
-                  color: '#00e676',
+                  width: 28, height: 28,
+                  background: D.accent,
+                  borderRadius: 6,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 14, fontWeight: 700, color: '#fff',
+                  flexShrink: 0,
                 }}
               >
-                ⚡
+                R
               </div>
               <div>
-                <div
-                  className="font-bold text-sm tracking-tight"
-                  style={{
-                    background: 'linear-gradient(135deg, #f0f4ff 0%, #9ca3af 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                  }}
-                >
-                  RISE Intel
-                  <span className="ml-2 text-xs font-normal" style={{ WebkitTextFillColor: '#4b5563', color: '#4b5563' }}>
-                    by Thaiji
-                  </span>
-                </div>
-                <div className="text-xs" style={{ color: '#374151' }}>
-                  {posts.length > 0 ? `${posts.length} posts tracked` : 'Competitor Intelligence'}
-                </div>
+                <span className="font-semibold text-sm" style={{ color: D.text }}>RISE Intel</span>
+                <span className="text-xs ml-2" style={{ color: D.muted }}>by Thaiji</span>
               </div>
+              {posts.length > 0 && (
+                <span
+                  className="text-xs px-2 py-0.5 rounded"
+                  style={{ background: '#2a2a2a', color: D.sub, border: `1px solid ${D.border}` }}
+                >
+                  {posts.length} posts
+                </span>
+              )}
             </div>
 
             <div className="flex items-center gap-2">
               {/* Platform toggle */}
               <div
-                className="flex items-center gap-0.5 p-0.5 rounded-xl"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
+                className="flex items-center p-0.5 rounded"
+                style={{ background: '#1e1e1e', border: `1px solid ${D.border}` }}
               >
                 <button
                   onClick={() => setPlatform('twitter')}
-                  className="px-3 py-1.5 text-xs font-semibold rounded-lg transition-all"
+                  className="px-3 py-1.5 text-xs font-medium rounded transition-all"
                   style={
                     platform === 'twitter'
-                      ? { background: 'linear-gradient(135deg, #00e676, #00c853)', color: '#000', boxShadow: '0 0 12px rgba(0,230,118,0.3)' }
-                      : { color: '#6b7280' }
+                      ? { background: D.accent, color: '#fff' }
+                      : { color: D.muted }
                   }
                 >
                   𝕏 Twitter
                 </button>
                 <button
                   onClick={() => setPlatform('discord')}
-                  className="px-3 py-1.5 text-xs font-semibold rounded-lg transition-all"
+                  className="px-3 py-1.5 text-xs font-medium rounded transition-all"
                   style={
                     platform === 'discord'
-                      ? { background: '#5865F2', color: '#fff', boxShadow: '0 0 12px rgba(88,101,242,0.3)' }
-                      : { color: '#6b7280' }
+                      ? { background: '#5865F2', color: '#fff' }
+                      : { color: D.muted }
                   }
                 >
-                  💬 Discord
+                  Discord
                 </button>
               </div>
 
-              {/* Date/time range */}
+              {/* Date range */}
               <div
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl"
-                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded"
+                style={{ background: '#1e1e1e', border: `1px solid ${D.border}` }}
               >
                 <input
                   type="datetime-local"
                   value={dateFrom}
                   onChange={e => setDateFrom(e.target.value)}
                   className="text-xs"
-                  style={{ background: 'transparent', border: 'none', color: dateFrom ? '#f0f4ff' : '#374151', outline: 'none', cursor: 'pointer', width: 140 }}
+                  style={{ background: 'transparent', border: 'none', color: dateFrom ? D.text : D.muted, outline: 'none', cursor: 'pointer', width: 135 }}
                 />
-                <span className="text-xs" style={{ color: '#374151' }}>→</span>
+                <span className="text-xs" style={{ color: D.muted }}>–</span>
                 <input
                   type="datetime-local"
                   value={dateTo}
                   onChange={e => setDateTo(e.target.value)}
                   className="text-xs"
-                  style={{ background: 'transparent', border: 'none', color: dateTo ? '#f0f4ff' : '#374151', outline: 'none', cursor: 'pointer', width: 140 }}
+                  style={{ background: 'transparent', border: 'none', color: dateTo ? D.text : D.muted, outline: 'none', cursor: 'pointer', width: 135 }}
                 />
                 {(dateFrom || dateTo) && (
-                  <button onClick={clearDates} className="text-xs ml-1" style={{ color: '#4b5563' }}>✕</button>
+                  <button onClick={clearDates} className="text-xs ml-1" style={{ color: D.muted }}>✕</button>
                 )}
               </div>
 
-              {/* Twitter controls */}
+              {/* Twitter admin controls */}
               {platform === 'twitter' && isLoggedIn && (
                 <>
                   <button
                     onClick={handleSync}
                     disabled={syncing}
-                    className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
-                    style={{ border: '1px solid rgba(255,255,255,0.08)', color: syncing ? '#374151' : '#9ca3af' }}
+                    className="px-3 py-1.5 text-xs font-medium rounded transition-all"
+                    style={{ border: `1px solid ${D.border}`, color: syncing ? D.muted : D.sub, background: '#1e1e1e' }}
                   >
                     {syncing ? '⟳ Syncing…' : '⟳ Sync'}
                   </button>
                   <button
                     onClick={handleExport}
                     disabled={posts.length === 0}
-                    className="px-3 py-1.5 text-xs font-medium rounded-lg"
-                    style={{ border: '1px solid rgba(255,255,255,0.08)', color: posts.length === 0 ? '#374151' : '#9ca3af' }}
+                    className="px-3 py-1.5 text-xs font-medium rounded"
+                    style={{ border: `1px solid ${D.border}`, color: posts.length === 0 ? D.muted : D.sub, background: '#1e1e1e' }}
                   >
                     ↓ CSV
                   </button>
                   <label
-                    className="px-3 py-1.5 text-xs font-medium rounded-lg cursor-pointer"
-                    style={{ border: '1px solid rgba(255,255,255,0.08)', color: '#9ca3af' }}
+                    className="px-3 py-1.5 text-xs font-medium rounded cursor-pointer"
+                    style={{ border: `1px solid ${D.border}`, color: D.sub, background: '#1e1e1e' }}
                   >
                     ↑ CSV
                     <input ref={importRef} type="file" accept=".csv" className="hidden" onChange={handleImport} />
@@ -334,37 +341,31 @@ export default function App() {
 
               <button
                 onClick={() => isLoggedIn ? setIsLoggedIn(false) : (setShowLogin(true), setLoginPassword(''), setLoginError(''))}
-                className="px-3 py-1.5 text-xs font-semibold rounded-lg transition-all"
+                className="px-3 py-1.5 text-xs font-medium rounded transition-all"
                 style={
                   isLoggedIn
-                    ? { background: 'rgba(0,230,118,0.1)', border: '1px solid rgba(0,230,118,0.2)', color: '#00e676' }
-                    : { border: '1px solid rgba(255,255,255,0.08)', color: '#6b7280' }
+                    ? { background: D.accentBg, border: `1px solid ${D.accentBorder}`, color: D.accent }
+                    : { border: `1px solid ${D.border}`, color: D.muted, background: '#1e1e1e' }
                 }
               >
-                {isLoggedIn ? '🔓 Logged in' : '🔒 Login'}
+                {isLoggedIn ? '● Admin' : 'Login'}
               </button>
             </div>
           </div>
 
           {platform === 'twitter' && (
             <>
-              {/* Primary group row */}
-              <div className="flex items-center gap-1 pt-1">
+              {/* Primary group tabs */}
+              <div className="flex items-end gap-0" style={{ borderTop: `1px solid ${D.border}` }}>
                 {NAV.map(group => (
                   <button
                     key={group.id}
                     onClick={() => handleGroupClick(group.id)}
-                    className="px-4 py-2.5 text-xs font-semibold rounded-t-lg transition-all relative whitespace-nowrap"
+                    className="px-5 py-3 text-xs font-medium relative whitespace-nowrap transition-colors"
                     style={
                       activeGroup === group.id
-                        ? {
-                            color: '#00e676',
-                            background: 'rgba(0,230,118,0.06)',
-                            borderTop: '1px solid rgba(0,230,118,0.15)',
-                            borderLeft: '1px solid rgba(0,230,118,0.08)',
-                            borderRight: '1px solid rgba(0,230,118,0.08)',
-                          }
-                        : { color: '#4b5563' }
+                        ? { color: D.text }
+                        : { color: D.muted }
                     }
                   >
                     {group.label}
@@ -376,8 +377,7 @@ export default function App() {
                           left: 0,
                           right: 0,
                           height: 2,
-                          background: 'linear-gradient(90deg, #00e676, #00b4d8)',
-                          borderRadius: '2px 2px 0 0',
+                          background: D.accent,
                         }}
                       />
                     )}
@@ -385,24 +385,24 @@ export default function App() {
                 ))}
               </div>
 
-              {/* Sub-tab row — only when active group has sub-tabs */}
+              {/* Sub-tab row */}
               {(() => {
                 const group = NAV.find(g => g.id === activeGroup)
                 if (!group || group.tabs.length === 0) return null
                 return (
                   <div
-                    className="flex items-center gap-0.5 px-2 py-1.5"
-                    style={{ background: 'rgba(0,230,118,0.03)', borderTop: '1px solid rgba(255,255,255,0.04)' }}
+                    className="flex items-center gap-1 px-1 py-2"
+                    style={{ borderTop: `1px solid ${D.border}` }}
                   >
                     {group.tabs.map(tab => (
                       <button
                         key={tab.id}
                         onClick={() => handleTabClick(tab.id)}
-                        className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap"
+                        className="px-3 py-1 text-xs font-medium rounded transition-all whitespace-nowrap"
                         style={
                           activeTab === tab.id
-                            ? { background: 'rgba(0,230,118,0.12)', color: '#00e676', border: '1px solid rgba(0,230,118,0.2)' }
-                            : { color: '#6b7280', border: '1px solid transparent' }
+                            ? { background: D.accentBg, color: D.accent, border: `1px solid ${D.accentBorder}` }
+                            : { color: D.sub, border: '1px solid transparent' }
                         }
                       >
                         {tab.label}
@@ -417,10 +417,10 @@ export default function App() {
       </header>
 
       {showLogin && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
-          <div className="rounded-xl p-6 w-80 flex flex-col gap-4" style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e' }}>
-            <h3 className="text-white font-bold">Login Required</h3>
-            <p className="text-xs" style={{ color: '#6b7280' }}>Enter password to log or delete posts.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.75)' }}>
+          <div className="rounded-lg p-6 w-80 flex flex-col gap-4" style={{ backgroundColor: D.surface, border: `1px solid ${D.border}` }}>
+            <h3 className="font-semibold text-sm" style={{ color: D.text }}>Login</h3>
+            <p className="text-xs" style={{ color: D.sub }}>Enter password to log or delete posts.</p>
             <input
               type="password"
               value={loginPassword}
@@ -428,22 +428,22 @@ export default function App() {
               onKeyDown={e => e.key === 'Enter' && handleLogin()}
               placeholder="Password"
               autoFocus
-              className="px-3 py-2 rounded-lg text-sm"
-              style={{ backgroundColor: '#0d0d1a', border: '1px solid #1a1a2e', color: '#e2e8f0', outline: 'none' }}
+              className="px-3 py-2 rounded text-sm"
+              style={{ backgroundColor: '#1e1e1e', border: `1px solid ${D.border}`, color: D.text, outline: 'none' }}
             />
             {loginError && <p className="text-xs" style={{ color: '#ef4444' }}>{loginError}</p>}
             <div className="flex gap-2">
               <button
                 onClick={() => setShowLogin(false)}
-                className="flex-1 py-2 rounded-lg text-xs font-medium"
-                style={{ border: '1px solid #1a1a2e', color: '#6b7280' }}
+                className="flex-1 py-2 rounded text-xs font-medium"
+                style={{ border: `1px solid ${D.border}`, color: D.sub }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleLogin}
-                className="flex-1 py-2 rounded-lg text-xs font-medium"
-                style={{ backgroundColor: '#00e676', color: '#000' }}
+                className="flex-1 py-2 rounded text-xs font-medium"
+                style={{ backgroundColor: D.accent, color: '#fff' }}
               >
                 Login
               </button>
@@ -455,11 +455,11 @@ export default function App() {
       {syncMsg && (
         <div className="max-w-screen-xl mx-auto px-6 pt-4">
           <div
-            className="px-4 py-3 rounded-lg text-sm"
+            className="px-4 py-2.5 rounded text-xs"
             style={{
-              backgroundColor: syncMsg.startsWith('Sync failed') ? 'rgba(239,68,68,0.1)' : 'rgba(0,230,118,0.1)',
-              border: `1px solid ${syncMsg.startsWith('Sync failed') ? 'rgba(239,68,68,0.3)' : 'rgba(0,230,118,0.3)'}`,
-              color: syncMsg.startsWith('Sync failed') ? '#f87171' : '#00e676',
+              backgroundColor: syncMsg.startsWith('Sync failed') ? 'rgba(239,68,68,0.1)' : 'rgba(255,119,0,0.08)',
+              border: `1px solid ${syncMsg.startsWith('Sync failed') ? 'rgba(239,68,68,0.3)' : D.accentBorder}`,
+              color: syncMsg.startsWith('Sync failed') ? '#f87171' : D.accent,
             }}
           >
             {syncMsg}
@@ -470,10 +470,10 @@ export default function App() {
       {discordSyncMsg && (
         <div className="max-w-screen-xl mx-auto px-6 pt-4">
           <div
-            className="px-4 py-3 rounded-lg text-sm"
+            className="px-4 py-2.5 rounded text-xs"
             style={{
               backgroundColor: discordSyncMsg.startsWith('Discord sync failed') ? 'rgba(239,68,68,0.1)' : 'rgba(88,101,242,0.1)',
-              border: `1px solid ${discordSyncMsg.startsWith('Discord sync failed') ? 'rgba(239,68,68,0.3)' : 'rgba(88,101,242,0.3)'}`,
+              border: `1px solid ${discordSyncMsg.startsWith('Discord sync failed') ? 'rgba(239,68,68,0.3)' : 'rgba(88,101,242,0.4)'}`,
               color: discordSyncMsg.startsWith('Discord sync failed') ? '#f87171' : '#818cf8',
             }}
           >
@@ -485,11 +485,11 @@ export default function App() {
       {importMsg && (
         <div className="max-w-screen-xl mx-auto px-6 pt-4">
           <div
-            className="px-4 py-3 rounded-lg text-sm"
+            className="px-4 py-2.5 rounded text-xs"
             style={{
-              backgroundColor: importMsg.startsWith('Import failed') ? 'rgba(239,68,68,0.1)' : 'rgba(0,230,118,0.1)',
-              border: `1px solid ${importMsg.startsWith('Import failed') ? 'rgba(239,68,68,0.3)' : 'rgba(0,230,118,0.3)'}`,
-              color: importMsg.startsWith('Import failed') ? '#f87171' : '#00e676',
+              backgroundColor: importMsg.startsWith('Import failed') ? 'rgba(239,68,68,0.1)' : 'rgba(255,119,0,0.08)',
+              border: `1px solid ${importMsg.startsWith('Import failed') ? 'rgba(239,68,68,0.3)' : D.accentBorder}`,
+              color: importMsg.startsWith('Import failed') ? '#f87171' : D.accent,
             }}
           >
             {importMsg}
@@ -498,7 +498,7 @@ export default function App() {
       )}
 
       {platform === 'discord' ? (
-        <main className="max-w-screen-xl mx-auto px-6 py-8">
+        <main className="max-w-screen-xl mx-auto px-6 py-6">
           <DiscordDashboard
             isLoggedIn={isLoggedIn}
             onRefresh={handleDiscordRefresh}
@@ -509,10 +509,10 @@ export default function App() {
         </main>
       ) : loading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="text-sm" style={{ color: '#6b7280' }}>Loading...</div>
+          <div className="text-xs" style={{ color: '#555' }}>Loading...</div>
         </div>
       ) : (
-        <main className="max-w-screen-xl mx-auto px-6 py-8">
+        <main className="max-w-screen-xl mx-auto px-6 py-6">
           {activeTab === 'activity'   && <ActivityChart posts={posts} competitors={competitors} />}
           {activeTab === 'updates'    && <TwitterFeed posts={filteredPosts} competitors={competitors} isLoggedIn={isLoggedIn} />}
           {activeTab === 'dashboard'  && <Dashboard posts={filteredPosts} competitors={competitors} />}

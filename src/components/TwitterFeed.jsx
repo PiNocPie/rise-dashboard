@@ -27,7 +27,7 @@ function TweetCard({ post, isLoggedIn, isViral }) {
   const [saved, setSaved] = useState(false)
   const color = COMPETITOR_COLORS[post.competitor] || '#6366f1'
   const twitterUrl = COMPETITOR_TWITTER[post.competitor]
-  const catColor = CATEGORY_COLORS[post.category] || '#4b5563'
+  const catColor = CATEGORY_COLORS[post.category] || '#555555'
   const er = engRate(post)
 
   const username = COMPETITOR_TWITTER_USERNAMES[post.competitor]
@@ -45,7 +45,7 @@ function TweetCard({ post, isLoggedIn, isViral }) {
   }
 
   return (
-    <div className="rounded-xl p-4 flex flex-col gap-3" style={{ backgroundColor: '#11111e', border: `1px solid ${isViral ? '#00e67644' : '#1a1a2e'}` }}>
+    <div className="rounded-lg p-4 flex flex-col gap-3" style={{ backgroundColor: '#242424', border: `1px solid ${isViral ? '#FF770044' : '#2d2d2d'}` }}>
       {/* Header */}
       <div className="flex items-center gap-2 flex-wrap">
         <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
@@ -53,7 +53,7 @@ function TweetCard({ post, isLoggedIn, isViral }) {
         {twitterUrl && (
           <a href={twitterUrl} target="_blank" rel="noopener noreferrer"
             className="text-xs px-1.5 py-0.5 rounded"
-            style={{ color: '#6b7280', border: '1px solid #1a1a2e' }}
+            style={{ color: '#888888', border: '1px solid #2d2d2d' }}
           >
             @{twitterUrl.split('/').pop()}
           </a>
@@ -64,18 +64,18 @@ function TweetCard({ post, isLoggedIn, isViral }) {
           </span>
         )}
         {isViral && (
-          <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: '#00e67622', color: '#00e676', border: '1px solid #00e67644' }}>
+          <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: '#FF770022', color: '#FF7700', border: '1px solid #FF770044' }}>
             🔥 Viral
           </span>
         )}
-        <span className="ml-auto text-xs" style={{ color: '#4b5563' }}>{fmtDate(post.postDate)}</span>
+        <span className="ml-auto text-xs" style={{ color: '#555555' }}>{fmtDate(post.postDate)}</span>
         <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: `${catColor}22`, color: catColor, border: `1px solid ${catColor}44` }}>
           {post.category}
         </span>
       </div>
 
       {/* Tweet text */}
-      <p className="text-sm leading-relaxed" style={{ color: '#d1d5db' }}>{post.postText}</p>
+      <p className="text-sm leading-relaxed" style={{ color: '#e8e8e8' }}>{post.postText}</p>
 
       {/* Metrics row */}
       <div className="flex items-center gap-4 flex-wrap">
@@ -87,13 +87,13 @@ function TweetCard({ post, isLoggedIn, isViral }) {
         ].map(({ label, val }) => (
           <div key={label} className="flex flex-col items-center">
             <span className="text-sm font-bold text-white">{fmtNum(val)}</span>
-            <span className="text-xs" style={{ color: '#4b5563' }}>{label}</span>
+            <span className="text-xs" style={{ color: '#555555' }}>{label}</span>
           </div>
         ))}
         {er !== null && (
           <div className="flex flex-col items-center">
-            <span className="text-sm font-bold" style={{ color: '#00e676' }}>{er}%</span>
-            <span className="text-xs" style={{ color: '#4b5563' }}>Eng. Rate</span>
+            <span className="text-sm font-bold" style={{ color: '#FF7700' }}>{er}%</span>
+            <span className="text-xs" style={{ color: '#555555' }}>Eng. Rate</span>
           </div>
         )}
         {tweetUrl && (
@@ -102,7 +102,7 @@ function TweetCard({ post, isLoggedIn, isViral }) {
             target="_blank"
             rel="noopener noreferrer"
             className="ml-auto text-xs px-2.5 py-1 rounded-lg font-medium"
-            style={{ backgroundColor: '#1a1a2e', color: '#9ca3af', border: '1px solid #2a2a3e' }}
+            style={{ backgroundColor: '#2d2d2d', color: '#888888', border: '1px solid #3a3a3a' }}
           >
             View Tweet ↗
           </a>
@@ -111,7 +111,7 @@ function TweetCard({ post, isLoggedIn, isViral }) {
 
       {/* Team notes */}
       <div className="flex flex-col gap-1.5">
-        <div className="text-xs font-medium uppercase tracking-wider" style={{ color: '#4b5563' }}>Team Notes</div>
+        <div className="text-xs font-medium uppercase tracking-wider" style={{ color: '#555555' }}>Team Notes</div>
         <textarea
           value={note}
           onChange={e => { setNote(e.target.value); setSaved(false) }}
@@ -120,21 +120,21 @@ function TweetCard({ post, isLoggedIn, isViral }) {
           disabled={!isLoggedIn}
           className="w-full px-3 py-2 rounded-lg text-xs resize-none"
           style={{
-            backgroundColor: '#0a0a12',
-            border: '1px solid #1a1a2e',
-            color: '#e2e8f0',
+            backgroundColor: '#1e1e1e',
+            border: '1px solid #2d2d2d',
+            color: '#e8e8e8',
             outline: 'none',
             opacity: isLoggedIn ? 1 : 0.5,
           }}
         />
         {isLoggedIn && (
           <div className="flex items-center gap-2 justify-end">
-            {saved && <span className="text-xs" style={{ color: '#00e676' }}>Saved</span>}
+            {saved && <span className="text-xs" style={{ color: '#FF7700' }}>Saved</span>}
             <button
               onClick={saveNote}
               disabled={saving}
               className="px-3 py-1 text-xs font-medium rounded-lg"
-              style={{ backgroundColor: '#00e676', color: '#000', opacity: saving ? 0.6 : 1, cursor: saving ? 'not-allowed' : 'pointer' }}
+              style={{ backgroundColor: '#FF7700', color: '#000', opacity: saving ? 0.6 : 1, cursor: saving ? 'not-allowed' : 'pointer' }}
             >
               {saving ? 'Saving…' : 'Save Note'}
             </button>
@@ -203,9 +203,9 @@ export default function TwitterFeed({ posts, competitors, isLoggedIn }) {
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <div>
           <h2 className="text-xl font-bold text-white">Competitor Updates</h2>
-          <p className="text-sm mt-0.5" style={{ color: '#6b7280' }}>
+          <p className="text-sm mt-0.5" style={{ color: '#888888' }}>
             Auto-synced tweets · {feedPosts.length} showing
-            {!isLoggedIn && <span className="ml-2" style={{ color: '#4b5563' }}>· Login to add notes</span>}
+            {!isLoggedIn && <span className="ml-2" style={{ color: '#555555' }}>· Login to add notes</span>}
           </p>
         </div>
         {/* Sort */}
@@ -216,8 +216,8 @@ export default function TwitterFeed({ posts, competitors, isLoggedIn }) {
               onClick={() => setSortBy(opt.id)}
               className="px-3 py-1 text-xs font-medium rounded-full transition-all"
               style={sortBy === opt.id
-                ? { backgroundColor: '#00e676', color: '#000' }
-                : { border: '1px solid #1a1a2e', color: '#6b7280' }
+                ? { backgroundColor: '#FF7700', color: '#000' }
+                : { border: '1px solid #2d2d2d', color: '#888888' }
               }
             >
               {opt.label}
@@ -234,7 +234,7 @@ export default function TwitterFeed({ posts, competitors, isLoggedIn }) {
           onChange={e => setSearch(e.target.value)}
           placeholder="Search tweet content or competitor…"
           className="w-full px-3 py-2 rounded-lg text-sm"
-          style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e', color: '#e2e8f0', outline: 'none' }}
+          style={{ backgroundColor: '#242424', border: '1px solid #2d2d2d', color: '#e8e8e8', outline: 'none' }}
         />
       </div>
 
@@ -249,8 +249,8 @@ export default function TwitterFeed({ posts, competitors, isLoggedIn }) {
               onClick={() => setSelectedCompetitor(c)}
               className="px-3 py-1 text-xs font-medium rounded-full transition-all"
               style={active
-                ? { backgroundColor: c === 'All' ? '#00e676' : color, color: '#000' }
-                : { border: '1px solid #1a1a2e', color: '#6b7280' }
+                ? { backgroundColor: c === 'All' ? '#FF7700' : color, color: '#000' }
+                : { border: '1px solid #2d2d2d', color: '#888888' }
               }
             >
               {c}
@@ -264,14 +264,14 @@ export default function TwitterFeed({ posts, competitors, isLoggedIn }) {
         <div className="flex items-center gap-2 flex-wrap mb-6">
           {['All', ...activeCategories].map(cat => {
             const active = selectedCategory === cat
-            const color = CATEGORY_COLORS[cat] || '#6b7280'
+            const color = CATEGORY_COLORS[cat] || '#888888'
             return (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
                 className="px-2.5 py-0.5 text-xs font-medium rounded-full transition-all"
                 style={active
-                  ? { backgroundColor: cat === 'All' ? '#6b7280' : color, color: '#000' }
+                  ? { backgroundColor: cat === 'All' ? '#888888' : color, color: '#000' }
                   : { border: `1px solid ${color}55`, color: color }
                 }
               >
@@ -285,7 +285,7 @@ export default function TwitterFeed({ posts, competitors, isLoggedIn }) {
       {feedPosts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
           <div className="text-4xl">🐦</div>
-          <p className="text-sm" style={{ color: '#4b5563' }}>
+          <p className="text-sm" style={{ color: '#555555' }}>
             {search || selectedCompetitor !== 'All' || selectedCategory !== 'All'
               ? 'No tweets match your filters.'
               : 'No auto-synced tweets yet. The cron runs daily at 8am Vietnam time.'}

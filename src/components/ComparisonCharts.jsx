@@ -19,14 +19,14 @@ function getWeekStart(dateStr) {
   return mon.toISOString().split('T')[0]
 }
 
-const TICK_STYLE = { fill: '#4b5563', fontSize: 11 }
-const AXIS_LINE = { stroke: '#1a1a2e' }
-const GRID_COLOR = '#1a1a2e'
+const TICK_STYLE = { fill: '#555555', fontSize: 11 }
+const AXIS_LINE = { stroke: '#2d2d2d' }
+const GRID_COLOR = '#2d2d2d'
 
 function ChartCard({ title, children }) {
   return (
-    <div className="rounded-xl p-5" style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e' }}>
-      <h3 className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: '#6b7280' }}>
+    <div className="rounded-lg p-5" style={{ backgroundColor: '#242424', border: '1px solid #2d2d2d' }}>
+      <h3 className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: '#888888' }}>
         {title}
       </h3>
       {children}
@@ -39,14 +39,14 @@ function CustomTooltip({ active, payload, label, fmt }) {
   return (
     <div
       className="rounded-lg p-3 shadow-2xl text-xs"
-      style={{ backgroundColor: '#11111e', border: '1px solid #2a2a3e' }}
+      style={{ background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: 6, fontSize: 12, color: '#e8e8e8' }}
     >
-      <div className="mb-1.5 font-medium" style={{ color: '#9ca3af' }}>{label}</div>
+      <div className="mb-1.5 font-medium" style={{ color: '#888888' }}>{label}</div>
       {payload.map((entry, i) => (
         <div key={i} className="flex items-center gap-2 mb-0.5">
           <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
-          <span style={{ color: '#9ca3af' }}>{entry.name}:</span>
-          <span className="font-semibold" style={{ color: '#e2e8f0' }}>
+          <span style={{ color: '#888888' }}>{entry.name}:</span>
+          <span className="font-semibold" style={{ color: '#e8e8e8' }}>
             {fmt ? fmt(entry.value) : entry.value}
           </span>
         </div>
@@ -64,7 +64,7 @@ function fmtK(v) {
 export default function ComparisonCharts({ posts, competitors }) {
   if (!posts.length) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 gap-2" style={{ color: '#374151' }}>
+      <div className="flex flex-col items-center justify-center h-64 gap-2" style={{ color: '#555555' }}>
         <div className="text-4xl">📊</div>
         <p className="text-sm">No data yet — log some posts first.</p>
       </div>
@@ -104,7 +104,7 @@ export default function ComparisonCharts({ posts, competitors }) {
     <div>
       <div className="mb-6">
         <h2 className="text-xl font-bold text-white">Comparison Charts</h2>
-        <p className="text-sm mt-0.5" style={{ color: '#6b7280' }}>Side-by-side metrics across competitors</p>
+        <p className="text-sm mt-0.5" style={{ color: '#888888' }}>Side-by-side metrics across competitors</p>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
@@ -167,10 +167,10 @@ export default function ComparisonCharts({ posts, competitors }) {
                 <CartesianGrid strokeDasharray="2 4" stroke={GRID_COLOR} />
                 <XAxis dataKey="week" tick={TICK_STYLE} axisLine={AXIS_LINE} tickLine={false} />
                 <YAxis tick={TICK_STYLE} axisLine={false} tickLine={false} allowDecimals={false} width={30} />
-                <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#2a2a3e', strokeWidth: 1 }} />
+                <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#3a3a3a', strokeWidth: 1 }} />
                 <Legend
                   wrapperStyle={{ paddingTop: 8 }}
-                  formatter={v => <span style={{ color: '#6b7280', fontSize: 11 }}>{v}</span>}
+                  formatter={v => <span style={{ color: '#888888', fontSize: 11 }}>{v}</span>}
                 />
                 {competitors.map(c => (
                   <Line
@@ -187,7 +187,7 @@ export default function ComparisonCharts({ posts, competitors }) {
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-52 text-sm" style={{ color: '#4b5563' }}>
+            <div className="flex items-center justify-center h-52 text-sm" style={{ color: '#555555' }}>
               Need posts across at least 2 different weeks to show trends.
             </div>
           )}
@@ -195,12 +195,12 @@ export default function ComparisonCharts({ posts, competitors }) {
       </div>
 
       {/* Summary table */}
-      <div className="mt-5 rounded-xl overflow-hidden" style={{ border: '1px solid #1a1a2e' }}>
+      <div className="mt-5 rounded-lg overflow-hidden" style={{ border: '1px solid #2d2d2d' }}>
         <table className="w-full text-sm">
           <thead>
-            <tr style={{ backgroundColor: '#0d0d1a' }}>
+            <tr style={{ backgroundColor: '#1e1e1e' }}>
               {['Competitor', 'Posts', 'Avg Views', 'Avg Likes', 'Avg RTs', 'Avg ER %'].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#4b5563' }}>{h}</th>
+                <th key={h} className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#555555' }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -208,17 +208,17 @@ export default function ComparisonCharts({ posts, competitors }) {
             {barData.map((row, i) => (
               <tr
                 key={row.name}
-                style={{ backgroundColor: i % 2 === 0 ? '#11111e' : '#0f0f1b', borderTop: '1px solid #1a1a2e' }}
+                style={{ backgroundColor: i % 2 === 0 ? '#242424' : '#1e1e1e', borderTop: '1px solid #2d2d2d' }}
               >
                 <td className="px-4 py-3 font-medium flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COMPETITOR_COLORS[row.name] || '#6366f1' }} />
                   {row.name}
                 </td>
-                <td className="px-4 py-3" style={{ color: '#9ca3af' }}>{row.count}</td>
-                <td className="px-4 py-3" style={{ color: '#9ca3af' }}>{row.count ? row.views.toLocaleString() : '—'}</td>
-                <td className="px-4 py-3" style={{ color: '#9ca3af' }}>{row.count ? row.likes.toLocaleString() : '—'}</td>
-                <td className="px-4 py-3" style={{ color: '#9ca3af' }}>{row.count ? row.retweets?.toLocaleString() : '—'}</td>
-                <td className="px-4 py-3 font-medium" style={{ color: row.er > 0 ? '#00e676' : '#4b5563' }}>
+                <td className="px-4 py-3" style={{ color: '#888888' }}>{row.count}</td>
+                <td className="px-4 py-3" style={{ color: '#888888' }}>{row.count ? row.views.toLocaleString() : '—'}</td>
+                <td className="px-4 py-3" style={{ color: '#888888' }}>{row.count ? row.likes.toLocaleString() : '—'}</td>
+                <td className="px-4 py-3" style={{ color: '#888888' }}>{row.count ? row.retweets?.toLocaleString() : '—'}</td>
+                <td className="px-4 py-3 font-medium" style={{ color: row.er > 0 ? '#FF7700' : '#555555' }}>
                   {row.count ? `${row.er}%` : '—'}
                 </td>
               </tr>

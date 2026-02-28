@@ -18,10 +18,10 @@ function CustomTooltip({ active, payload }) {
   return (
     <div
       className="rounded-lg p-3 text-xs shadow-2xl"
-      style={{ backgroundColor: '#11111e', border: '1px solid #2a2a3e' }}
+      style={{ background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: 6, fontSize: 12, color: '#e8e8e8' }}
     >
-      <div className="font-semibold mb-0.5" style={{ color: '#e2e8f0' }}>{name}</div>
-      <div style={{ color: '#9ca3af' }}>{value} posts · {pct}%</div>
+      <div className="font-semibold mb-0.5" style={{ color: '#e8e8e8' }}>{name}</div>
+      <div style={{ color: '#888888' }}>{value} posts · {pct}%</div>
     </div>
   )
 }
@@ -44,13 +44,13 @@ function CompetitorPie({ competitor, posts, color }) {
 
   return (
     <div
-      className="rounded-xl p-5"
-      style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e' }}
+      className="rounded-lg p-5"
+      style={{ backgroundColor: '#242424', border: '1px solid #2d2d2d' }}
     >
       <div className="flex items-center gap-2 mb-4">
         <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />
         <span className="font-bold text-white">{competitor}</span>
-        <span className="ml-auto text-xs" style={{ color: '#4b5563' }}>{posts.length} posts</span>
+        <span className="ml-auto text-xs" style={{ color: '#555555' }}>{posts.length} posts</span>
       </div>
 
       {pieData.length > 0 ? (
@@ -69,7 +69,7 @@ function CompetitorPie({ competitor, posts, color }) {
                 {pieData.map((entry) => (
                   <Cell
                     key={entry.name}
-                    fill={CATEGORY_COLORS[entry.name] || '#4b5563'}
+                    fill={CATEGORY_COLORS[entry.name] || '#555555'}
                     stroke="transparent"
                   />
                 ))}
@@ -84,16 +84,16 @@ function CompetitorPie({ competitor, posts, color }) {
               <div key={name} className="flex items-center gap-2">
                 <div
                   className="w-2 h-2 rounded-sm flex-shrink-0"
-                  style={{ backgroundColor: CATEGORY_COLORS[name] || '#4b5563' }}
+                  style={{ backgroundColor: CATEGORY_COLORS[name] || '#555555' }}
                 />
-                <span className="text-xs flex-1 truncate" style={{ color: '#9ca3af' }}>{name}</span>
-                <span className="text-xs font-medium" style={{ color: '#6b7280' }}>{pct}%</span>
+                <span className="text-xs flex-1 truncate" style={{ color: '#888888' }}>{name}</span>
+                <span className="text-xs font-medium" style={{ color: '#888888' }}>{pct}%</span>
               </div>
             ))}
           </div>
         </>
       ) : (
-        <div className="flex items-center justify-center h-48 text-xs" style={{ color: '#374151' }}>
+        <div className="flex items-center justify-center h-48 text-xs" style={{ color: '#555555' }}>
           No posts logged yet
         </div>
       )}
@@ -119,22 +119,22 @@ function CategoryHeatmap({ posts, competitors }) {
   if (!usedCats.length) return null
 
   return (
-    <div className="mt-6 rounded-xl overflow-hidden" style={{ border: '1px solid #1a1a2e' }}>
-      <div className="px-4 py-3" style={{ backgroundColor: '#0d0d1a', borderBottom: '1px solid #1a1a2e' }}>
-        <h3 className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#6b7280' }}>
+    <div className="mt-6 rounded-lg overflow-hidden" style={{ border: '1px solid #2d2d2d' }}>
+      <div className="px-4 py-3" style={{ backgroundColor: '#1e1e1e', borderBottom: '1px solid #2d2d2d' }}>
+        <h3 className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#888888' }}>
           Category Heatmap
         </h3>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
-            <tr style={{ backgroundColor: '#0d0d1a' }}>
-              <th className="px-4 py-2.5 text-left font-medium" style={{ color: '#4b5563', minWidth: 100 }}>Competitor</th>
+            <tr style={{ backgroundColor: '#1e1e1e' }}>
+              <th className="px-4 py-2.5 text-left font-medium" style={{ color: '#555555', minWidth: 100 }}>Competitor</th>
               {usedCats.map(cat => (
-                <th key={cat} className="px-3 py-2.5 text-center font-medium" style={{ color: '#4b5563', minWidth: 80 }}>
+                <th key={cat} className="px-3 py-2.5 text-center font-medium" style={{ color: '#555555', minWidth: 80 }}>
                   <div
                     className="inline-block w-2 h-2 rounded-sm mr-1"
-                    style={{ backgroundColor: CATEGORY_COLORS[cat] || '#4b5563', verticalAlign: 'middle' }}
+                    style={{ backgroundColor: CATEGORY_COLORS[cat] || '#555555', verticalAlign: 'middle' }}
                   />
                   {cat}
                 </th>
@@ -145,7 +145,7 @@ function CategoryHeatmap({ posts, competitors }) {
             {matrix.map((row, i) => (
               <tr
                 key={row.competitor}
-                style={{ backgroundColor: i % 2 === 0 ? '#11111e' : '#0f0f1b', borderTop: '1px solid #1a1a2e' }}
+                style={{ backgroundColor: i % 2 === 0 ? '#242424' : '#1e1e1e', borderTop: '1px solid #2d2d2d' }}
               >
                 <td className="px-4 py-2.5 font-medium flex items-center gap-2">
                   <div
@@ -164,13 +164,13 @@ function CategoryHeatmap({ posts, competitors }) {
                           className="inline-block px-2 py-0.5 rounded text-xs font-medium"
                           style={{
                             backgroundColor: `${CATEGORY_COLORS[cat]}22`,
-                            color: CATEGORY_COLORS[cat] || '#9ca3af',
+                            color: CATEGORY_COLORS[cat] || '#888888',
                           }}
                         >
                           {count} <span style={{ opacity: 0.6 }}>({pct}%)</span>
                         </span>
                       ) : (
-                        <span style={{ color: '#1f2937' }}>—</span>
+                        <span style={{ color: '#555555' }}>—</span>
                       )}
                     </td>
                   )
@@ -187,7 +187,7 @@ function CategoryHeatmap({ posts, competitors }) {
 export default function ContentTheme({ posts, competitors }) {
   if (!posts.length) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 gap-2" style={{ color: '#374151' }}>
+      <div className="flex flex-col items-center justify-center h-64 gap-2" style={{ color: '#555555' }}>
         <div className="text-4xl">🥧</div>
         <p className="text-sm">No posts logged yet.</p>
       </div>
@@ -198,7 +198,7 @@ export default function ContentTheme({ posts, competitors }) {
     <div>
       <div className="mb-6">
         <h2 className="text-xl font-bold text-white">Content Themes</h2>
-        <p className="text-sm mt-0.5" style={{ color: '#6b7280' }}>
+        <p className="text-sm mt-0.5" style={{ color: '#888888' }}>
           Category breakdown per competitor
         </p>
       </div>

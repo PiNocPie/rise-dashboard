@@ -23,20 +23,20 @@ const TABS = [
 function Card({ children, className = '' }) {
   return (
     <div
-      className={`rounded-xl p-5 ${className}`}
-      style={{ backgroundColor: '#0a0a0f', border: '1px solid #111' }}
+      className={`rounded-lg p-5 ${className}`}
+      style={{ backgroundColor: '#242424', border: '1px solid #2d2d2d' }}
     >
       {children}
     </div>
   )
 }
 
-function StatBox({ label, value, sub, color = '#e2e8f0' }) {
+function StatBox({ label, value, sub, color = '#e8e8e8' }) {
   return (
     <div className="flex flex-col gap-1">
-      <div className="text-xs font-medium" style={{ color: '#6b7280' }}>{label}</div>
+      <div className="text-xs font-medium" style={{ color: '#888888' }}>{label}</div>
       <div className="text-2xl font-bold" style={{ color }}>{value ?? '—'}</div>
-      {sub && <div className="text-xs" style={{ color: '#4b5563' }}>{sub}</div>}
+      {sub && <div className="text-xs" style={{ color: '#555555' }}>{sub}</div>}
     </div>
   )
 }
@@ -52,7 +52,7 @@ function ServerToggle({ selected, onChange }) {
           style={
             selected === k
               ? { backgroundColor: DC_DIM, color: DC, border: `1px solid ${DC_BORDER}` }
-              : { color: '#6b7280', border: '1px solid #111' }
+              : { color: '#888888', border: '1px solid #2d2d2d' }
           }
         >
           {l}
@@ -73,7 +73,7 @@ function TwoServerToggle({ selected, onChange }) {
           style={
             selected === k
               ? { backgroundColor: DC_DIM, color: DC, border: `1px solid ${DC_BORDER}` }
-              : { color: '#6b7280', border: '1px solid #111' }
+              : { color: '#888888', border: '1px solid #2d2d2d' }
           }
         >
           {l}
@@ -98,7 +98,7 @@ function MemberAvatar({ member, size = 7 }) {
   return (
     <div
       className={`w-${size} h-${size} rounded-full flex items-center justify-center text-xs font-bold`}
-      style={{ backgroundColor: '#1a1a2e', color: DC }}
+      style={{ backgroundColor: '#1e1e1e', color: DC }}
     >
       {initial}
     </div>
@@ -125,7 +125,7 @@ function OverviewTab({ rise, risex }) {
             label="Open Tickets"
             value={totalTickets.toString()}
             sub={totalTickets > 0 ? 'Need attention' : 'All clear'}
-            color={totalTickets > 0 ? '#ef4444' : '#00e676'}
+            color={totalTickets > 0 ? '#ef4444' : '#FF7700'}
           />
         </Card>
       </div>
@@ -138,13 +138,13 @@ function OverviewTab({ rise, risex }) {
               <div>
                 <div className="text-sm font-bold text-white">{name} Discord</div>
                 {snap && (
-                  <div className="text-xs" style={{ color: '#4b5563' }}>
+                  <div className="text-xs" style={{ color: '#555555' }}>
                     Synced {new Date(snap.syncedAt).toLocaleString()}
                   </div>
                 )}
               </div>
               <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-lg"
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-lg"
                 style={{ backgroundColor: DC_DIM, border: `1px solid ${DC_BORDER}` }}
               >
                 💬
@@ -160,7 +160,7 @@ function OverviewTab({ rise, risex }) {
                     value={snap.previousMemberCount != null
                       ? (snap.netChange > 0 ? `+${snap.netChange}` : snap.netChange.toString())
                       : '—'}
-                    color={snap.netChange > 0 ? '#00e676' : snap.netChange < 0 ? '#ef4444' : '#6b7280'}
+                    color={snap.netChange > 0 ? '#FF7700' : snap.netChange < 0 ? '#ef4444' : '#888888'}
                     sub="vs yesterday"
                   />
                   <StatBox label="Messages (24h)" value={snap.messageCount24h?.toLocaleString()} />
@@ -179,7 +179,7 @@ function OverviewTab({ rise, risex }) {
                 )}
               </>
             ) : (
-              <div className="text-sm" style={{ color: '#4b5563' }}>No data yet</div>
+              <div className="text-sm" style={{ color: '#555555' }}>No data yet</div>
             )}
           </Card>
         ))}
@@ -208,7 +208,7 @@ function OverviewTab({ rise, risex }) {
                       {m.server}
                     </span>
                   </div>
-                  <div className="text-xs" style={{ color: '#4b5563' }}>
+                  <div className="text-xs" style={{ color: '#555555' }}>
                     {new Date(m.joinedAt).toLocaleDateString()}
                   </div>
                 </div>
@@ -255,14 +255,14 @@ function MembersTab({ rise, risex }) {
           Most Active Members (24h) — {topN.length} shown
         </div>
         {topN.length === 0 ? (
-          <div className="text-sm" style={{ color: '#6b7280' }}>No activity data yet</div>
+          <div className="text-sm" style={{ color: '#888888' }}>No activity data yet</div>
         ) : (
           <div className="flex flex-col gap-1">
             {topN.map((m, i) => {
               const pct = (m.count / maxCount) * 100
               return (
                 <div key={`${m.server}-${m.id}`} className="flex items-center gap-3 py-2">
-                  <div className="w-5 text-xs text-right shrink-0" style={{ color: '#4b5563' }}>
+                  <div className="w-5 text-xs text-right shrink-0" style={{ color: '#555555' }}>
                     {i + 1}
                   </div>
                   <MemberAvatar member={m} size={7} />
@@ -285,10 +285,10 @@ function MembersTab({ rise, risex }) {
                         </span>
                       </div>
                     </div>
-                    <div className="h-1 rounded-full" style={{ backgroundColor: '#111' }}>
+                    <div className="h-1 rounded-full" style={{ backgroundColor: '#2d2d2d' }}>
                       <div
                         className="h-1 rounded-full transition-all"
-                        style={{ width: `${pct}%`, backgroundColor: i < 3 ? '#00e676' : DC }}
+                        style={{ width: `${pct}%`, backgroundColor: i < 3 ? '#FF7700' : DC }}
                       />
                     </div>
                   </div>
@@ -320,7 +320,7 @@ function ChannelsTab({ rise, risex }) {
         <Card>
           <div className="text-sm font-bold text-white mb-4">Most Active Channels (24h)</div>
           {channels.length === 0 ? (
-            <div className="text-sm" style={{ color: '#6b7280' }}>No data yet</div>
+            <div className="text-sm" style={{ color: '#888888' }}>No data yet</div>
           ) : (
             <div className="flex flex-col gap-2.5">
               {channels.slice(0, 12).map((ch, i) => {
@@ -330,12 +330,12 @@ function ChannelsTab({ rise, risex }) {
                   <div key={ch.id || i}>
                     <div className="flex items-center justify-between mb-0.5">
                       <span className="text-xs text-white">#{ch.name}</span>
-                      <span className="text-xs" style={{ color: '#6b7280' }}>{ch.count}</span>
+                      <span className="text-xs" style={{ color: '#888888' }}>{ch.count}</span>
                     </div>
-                    <div className="h-1 rounded-full" style={{ backgroundColor: '#111' }}>
+                    <div className="h-1 rounded-full" style={{ backgroundColor: '#2d2d2d' }}>
                       <div
                         className="h-1 rounded-full"
-                        style={{ width: `${pct}%`, backgroundColor: i === 0 ? '#00e676' : DC }}
+                        style={{ width: `${pct}%`, backgroundColor: i === 0 ? '#FF7700' : DC }}
                       />
                     </div>
                   </div>
@@ -349,32 +349,32 @@ function ChannelsTab({ rise, risex }) {
         <Card>
           <div className="text-sm font-bold text-white mb-4">Activity Chart</div>
           {chartData.length === 0 ? (
-            <div className="text-sm" style={{ color: '#6b7280' }}>No data yet</div>
+            <div className="text-sm" style={{ color: '#888888' }}>No data yet</div>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={chartData} layout="vertical" margin={{ left: 70, right: 16, top: 4, bottom: 4 }}>
                 <XAxis
                   type="number"
-                  tick={{ fill: '#6b7280', fontSize: 10 }}
+                  tick={{ fill: '#888888', fontSize: 10 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
                   type="category"
                   dataKey="name"
-                  tick={{ fill: '#9ca3af', fontSize: 11 }}
+                  tick={{ fill: '#888888', fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
                   width={68}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#0a0a0f',
-                    border: '1px solid #111',
-                    borderRadius: '8px',
+                    background: '#2a2a2a',
+                    border: '1px solid #3a3a3a',
+                    borderRadius: 6,
                     fontSize: '12px',
                   }}
-                  labelStyle={{ color: '#e2e8f0' }}
+                  labelStyle={{ color: '#e8e8e8' }}
                   itemStyle={{ color: DC }}
                   formatter={v => [v, 'messages']}
                 />
@@ -384,19 +384,19 @@ function ChannelsTab({ rise, risex }) {
           )}
 
           {snap && (
-            <div className="mt-4 pt-4" style={{ borderTop: '1px solid #111' }}>
+            <div className="mt-4 pt-4" style={{ borderTop: '1px solid #2d2d2d' }}>
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div>
                   <div className="text-lg font-bold" style={{ color: DC }}>{snap.totalChannels ?? '—'}</div>
-                  <div className="text-xs" style={{ color: '#6b7280' }}>Text Channels</div>
+                  <div className="text-xs" style={{ color: '#888888' }}>Text Channels</div>
                 </div>
                 <div>
                   <div className="text-lg font-bold text-white">{snap.messageCount24h ?? '—'}</div>
-                  <div className="text-xs" style={{ color: '#6b7280' }}>Messages (24h)</div>
+                  <div className="text-xs" style={{ color: '#888888' }}>Messages (24h)</div>
                 </div>
                 <div>
                   <div className="text-lg font-bold text-white">{snap.analyzedChannels ?? '—'}</div>
-                  <div className="text-xs" style={{ color: '#6b7280' }}>Analyzed</div>
+                  <div className="text-xs" style={{ color: '#888888' }}>Analyzed</div>
                 </div>
               </div>
             </div>
@@ -421,11 +421,11 @@ function DiscussionsTab({ rise, risex }) {
 
       <Card>
         <div className="text-sm font-bold text-white mb-1">Top Keywords in Last 24h</div>
-        <div className="text-xs mb-4" style={{ color: '#4b5563' }}>
+        <div className="text-xs mb-4" style={{ color: '#555555' }}>
           Extracted from all analyzed channels. Bigger = mentioned more often.
         </div>
         {keywords.length === 0 ? (
-          <div className="text-sm" style={{ color: '#6b7280' }}>No data yet — run a sync to populate</div>
+          <div className="text-sm" style={{ color: '#888888' }}>No data yet — run a sync to populate</div>
         ) : (
           <div className="flex flex-wrap gap-2">
             {keywords.map((kw, i) => {
@@ -455,7 +455,7 @@ function DiscussionsTab({ rise, risex }) {
       <Card>
         <div className="text-sm font-bold text-white mb-4">Most Discussed By (Top 5)</div>
         {(snap?.activeMembers || []).slice(0, 5).length === 0 ? (
-          <div className="text-sm" style={{ color: '#6b7280' }}>No data yet</div>
+          <div className="text-sm" style={{ color: '#888888' }}>No data yet</div>
         ) : (
           <div className="flex gap-4 flex-wrap">
             {(snap?.activeMembers || []).slice(0, 5).map((m, i) => (
@@ -491,7 +491,7 @@ function TrendsTab({ snapshots }) {
     return (
       <div className="flex flex-col items-center justify-center h-48 gap-2">
         <div className="text-sm font-medium text-white">Not enough history yet</div>
-        <div className="text-xs" style={{ color: '#6b7280' }}>
+        <div className="text-xs" style={{ color: '#888888' }}>
           Trends populate after a few daily syncs. Check back tomorrow.
         </div>
       </div>
@@ -499,8 +499,8 @@ function TrendsTab({ snapshots }) {
   }
 
   const tooltipStyle = {
-    contentStyle: { backgroundColor: '#0a0a0f', border: '1px solid #111', borderRadius: '8px', fontSize: '12px' },
-    labelStyle: { color: '#e2e8f0' },
+    contentStyle: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: 6, fontSize: '12px' },
+    labelStyle: { color: '#e8e8e8' },
   }
 
   return (
@@ -510,11 +510,11 @@ function TrendsTab({ snapshots }) {
         <div className="text-sm font-bold text-white mb-4">Member Growth Over Time</div>
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={chartData} margin={{ left: 0, right: 8, top: 4, bottom: 4 }}>
-            <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} width={50} />
+            <XAxis dataKey="date" tick={{ fill: '#888888', fontSize: 10 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: '#888888', fontSize: 10 }} axisLine={false} tickLine={false} width={50} />
             <Tooltip {...tooltipStyle} />
-            <Legend wrapperStyle={{ fontSize: '11px', color: '#9ca3af' }} />
-            <Line type="monotone" dataKey="RISE_members"  stroke="#00e676" strokeWidth={2} dot={false} name="RISE" />
+            <Legend wrapperStyle={{ fontSize: '11px', color: '#888888' }} />
+            <Line type="monotone" dataKey="RISE_members"  stroke="#FF7700" strokeWidth={2} dot={false} name="RISE" />
             <Line type="monotone" dataKey="RISEx_members" stroke={DC}       strokeWidth={2} dot={false} name="RISEx" />
           </LineChart>
         </ResponsiveContainer>
@@ -525,11 +525,11 @@ function TrendsTab({ snapshots }) {
         <div className="text-sm font-bold text-white mb-4">Daily Message Volume (24h window)</div>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={chartData} margin={{ left: 0, right: 8, top: 4, bottom: 4 }}>
-            <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
+            <XAxis dataKey="date" tick={{ fill: '#888888', fontSize: 10 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: '#888888', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
             <Tooltip {...tooltipStyle} />
-            <Legend wrapperStyle={{ fontSize: '11px', color: '#9ca3af' }} />
-            <Bar dataKey="RISE_messages"  fill="#00e676" name="RISE"  radius={[2, 2, 0, 0]} />
+            <Legend wrapperStyle={{ fontSize: '11px', color: '#888888' }} />
+            <Bar dataKey="RISE_messages"  fill="#FF7700" name="RISE"  radius={[2, 2, 0, 0]} />
             <Bar dataKey="RISEx_messages" fill={DC}      name="RISEx" radius={[2, 2, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
@@ -547,18 +547,18 @@ function TrendsTab({ snapshots }) {
               ? (d.RISEx_members || 0) - (chartData[chartData.indexOf(d) - 1].RISEx_members || 0)
               : 0
             return (
-              <div key={i} className="flex items-center justify-between py-1.5 text-xs" style={{ borderBottom: '1px solid #0d0d1a' }}>
-                <span style={{ color: '#6b7280' }}>{d.date}</span>
+              <div key={i} className="flex items-center justify-between py-1.5 text-xs" style={{ borderBottom: '1px solid #2d2d2d' }}>
+                <span style={{ color: '#888888' }}>{d.date}</span>
                 <div className="flex gap-6">
                   <span>
-                    <span style={{ color: '#4b5563' }}>RISE </span>
-                    <span style={{ color: riseNet > 0 ? '#00e676' : riseNet < 0 ? '#ef4444' : '#6b7280' }}>
+                    <span style={{ color: '#555555' }}>RISE </span>
+                    <span style={{ color: riseNet > 0 ? '#FF7700' : riseNet < 0 ? '#ef4444' : '#888888' }}>
                       {riseNet > 0 ? `+${riseNet}` : riseNet}
                     </span>
                   </span>
                   <span>
-                    <span style={{ color: '#4b5563' }}>RISEx </span>
-                    <span style={{ color: risexNet > 0 ? '#00e676' : risexNet < 0 ? '#ef4444' : '#6b7280' }}>
+                    <span style={{ color: '#555555' }}>RISEx </span>
+                    <span style={{ color: risexNet > 0 ? '#FF7700' : risexNet < 0 ? '#ef4444' : '#888888' }}>
                       {risexNet > 0 ? `+${risexNet}` : risexNet}
                     </span>
                   </span>
@@ -587,7 +587,7 @@ function TicketsTab({ rise, risex, resolvedIds, onResolve, isLoggedIn }) {
       <div className="flex flex-col items-center justify-center h-56 gap-3">
         <div className="text-4xl">✅</div>
         <div className="text-base font-bold text-white">No pending tickets</div>
-        <div className="text-xs" style={{ color: '#6b7280' }}>
+        <div className="text-xs" style={{ color: '#888888' }}>
           All support channels look clear right now
         </div>
       </div>
@@ -619,14 +619,14 @@ function TicketsTab({ rise, risex, resolvedIds, onResolve, isLoggedIn }) {
             ? 'rgba(239,68,68,0.25)'
             : idleH > 6
             ? 'rgba(245,158,11,0.15)'
-            : '#111'
-          const idleColor = idleH > 24 ? '#ef4444' : idleH > 6 ? '#f59e0b' : '#6b7280'
+            : '#2d2d2d'
+          const idleColor = idleH > 24 ? '#ef4444' : idleH > 6 ? '#f59e0b' : '#888888'
 
           return (
             <div
               key={`${t.server}-${t.id}-${i}`}
-              className="rounded-xl p-4"
-              style={{ backgroundColor: '#0a0a0f', border: `1px solid ${urgency}` }}
+              className="rounded-lg p-4"
+              style={{ backgroundColor: '#242424', border: `1px solid ${urgency}` }}
             >
               <div className="flex items-start justify-between gap-3 mb-2">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -636,14 +636,14 @@ function TicketsTab({ rise, risex, resolvedIds, onResolve, isLoggedIn }) {
                   >
                     {t.server}
                   </span>
-                  <span className="text-xs" style={{ color: '#6b7280' }}>
+                  <span className="text-xs" style={{ color: '#888888' }}>
                     #{t.channelName}
                   </span>
                   <span
                     className="text-xs px-2 py-0.5 rounded"
                     style={
                       t.hasStaffReply
-                        ? { backgroundColor: 'rgba(0,230,118,0.1)', border: '1px solid rgba(0,230,118,0.2)', color: '#00e676' }
+                        ? { backgroundColor: 'rgba(255,119,0,0.1)', border: '1px solid rgba(255,119,0,0.2)', color: '#FF7700' }
                         : { backgroundColor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171' }
                     }
                   >
@@ -669,18 +669,18 @@ function TicketsTab({ rise, risex, resolvedIds, onResolve, isLoggedIn }) {
                     <button
                       onClick={() => onResolve(`${t.server}-${t.channelId}-${t.id}`)}
                       className="text-xs px-2.5 py-1 rounded-lg font-medium transition-all"
-                      style={{ backgroundColor: 'rgba(0,230,118,0.1)', border: '1px solid rgba(0,230,118,0.25)', color: '#00e676' }}
+                      style={{ backgroundColor: 'rgba(255,119,0,0.1)', border: '1px solid rgba(255,119,0,0.25)', color: '#FF7700' }}
                     >
                       ✓ Resolve
                     </button>
                   )}
                 </div>
               </div>
-              <div className="text-xs font-semibold mb-1" style={{ color: '#9ca3af' }}>
+              <div className="text-xs font-semibold mb-1" style={{ color: '#888888' }}>
                 {t.authorName}
               </div>
-              <div className="text-sm leading-relaxed" style={{ color: '#e2e8f0' }}>
-                {t.preview || <span style={{ color: '#4b5563' }}>(no text)</span>}
+              <div className="text-sm leading-relaxed" style={{ color: '#e8e8e8' }}>
+                {t.preview || <span style={{ color: '#555555' }}>(no text)</span>}
               </div>
             </div>
           )
@@ -752,7 +752,7 @@ export default function DiscordDashboard({ isLoggedIn, onRefresh, refreshing, da
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-sm" style={{ color: '#6b7280' }}>Loading Discord intelligence…</div>
+        <div className="text-sm" style={{ color: '#888888' }}>Loading Discord intelligence…</div>
       </div>
     )
   }
@@ -770,7 +770,7 @@ export default function DiscordDashboard({ isLoggedIn, onRefresh, refreshing, da
               style={
                 activeTab === tab.id
                   ? { backgroundColor: DC_DIM, color: DC, border: `1px solid ${DC_BORDER}` }
-                  : { color: '#6b7280', border: '1px solid transparent' }
+                  : { color: '#888888', border: '1px solid transparent' }
               }
             >
               {tab.label}
@@ -788,7 +788,7 @@ export default function DiscordDashboard({ isLoggedIn, onRefresh, refreshing, da
 
         <div className="flex items-center gap-3">
           {lastSync && (
-            <div className="text-xs" style={{ color: '#4b5563' }}>
+            <div className="text-xs" style={{ color: '#555555' }}>
               Updated: {lastSync}
             </div>
           )}
@@ -800,7 +800,7 @@ export default function DiscordDashboard({ isLoggedIn, onRefresh, refreshing, da
               style={{
                 backgroundColor: refreshing ? 'transparent' : DC_DIM,
                 border: `1px solid ${DC_BORDER}`,
-                color: refreshing ? '#4b5563' : DC,
+                color: refreshing ? '#555555' : DC,
                 cursor: refreshing ? 'not-allowed' : 'pointer',
               }}
             >
@@ -817,11 +817,11 @@ export default function DiscordDashboard({ isLoggedIn, onRefresh, refreshing, da
           <div className="text-base font-bold text-white">No Discord data yet</div>
           <div
             className="text-xs text-center max-w-sm leading-relaxed"
-            style={{ color: '#6b7280' }}
+            style={{ color: '#888888' }}
           >
             Add these to your Vercel environment variables, then click Refresh:
             <br />
-            <code className="mt-1 block" style={{ color: '#9ca3af' }}>
+            <code className="mt-1 block" style={{ color: '#888888' }}>
               DISCORD_BOT_TOKEN · DISCORD_RISE_GUILD_ID · DISCORD_RISEX_GUILD_ID
             </code>
           </div>
@@ -829,7 +829,7 @@ export default function DiscordDashboard({ isLoggedIn, onRefresh, refreshing, da
             <button
               onClick={onRefresh}
               disabled={refreshing}
-              className="mt-2 px-5 py-2.5 text-sm font-bold rounded-xl"
+              className="mt-2 px-5 py-2.5 text-sm font-bold rounded-lg"
               style={{ backgroundColor: DC, color: '#fff', cursor: refreshing ? 'not-allowed' : 'pointer' }}
             >
               {refreshing ? 'Syncing…' : 'Sync Discord Now'}

@@ -78,11 +78,12 @@ function buildCategoryBreakdown(posts) {
 // ─── design tokens ────────────────────────────────────────────────────────────
 
 const S = {
-  surface: '#0a0a0f',
-  border: 'rgba(255,255,255,0.06)',
-  text: '#f0f4ff',
-  sub: '#9ca3af',
-  muted: '#4b5563',
+  surface: '#242424',
+  border: '#2d2d2d',
+  text: '#e8e8e8',
+  sub: '#888888',
+  muted: '#555555',
+  accent: '#FF7700',
 }
 
 // ─── components ───────────────────────────────────────────────────────────────
@@ -90,11 +91,10 @@ const S = {
 function Card({ children, className = '', style = {} }) {
   return (
     <div
-      className={`rounded-2xl p-5 ${className}`}
+      className={`rounded-lg p-5 ${className}`}
       style={{
         background: S.surface,
         border: `1px solid ${S.border}`,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.02)',
         ...style,
       }}
     >
@@ -103,18 +103,17 @@ function Card({ children, className = '', style = {} }) {
   )
 }
 
-function GradientStat({ label, value, sub, gradient }) {
+function GradientStat({ label, value, sub }) {
   return (
     <div
-      className="rounded-2xl p-5 flex flex-col gap-2"
+      className="rounded-lg p-5 flex flex-col gap-2"
       style={{
-        background: gradient || 'linear-gradient(135deg, rgba(0,230,118,0.08) 0%, rgba(0,180,216,0.04) 100%)',
-        border: '1px solid rgba(0,230,118,0.15)',
-        boxShadow: '0 0 24px rgba(0,230,118,0.04)',
+        background: '#242424',
+        border: `1px solid ${S.border}`,
       }}
     >
       <div className="text-xs font-medium uppercase tracking-wider" style={{ color: S.muted }}>{label}</div>
-      <div className="text-3xl font-bold" style={{ color: S.text }}>{value}</div>
+      <div className="text-3xl font-bold" style={{ color: S.accent }}>{value}</div>
       {sub && <div className="text-xs" style={{ color: S.sub }}>{sub}</div>}
     </div>
   )
@@ -125,7 +124,7 @@ function PostRow({ post, rank, username }) {
     ? `https://x.com/${username}/status/${post.tweetId}`
     : post.postUrl || null
   const erVal = er(post)
-  const erColor = erVal > 2 ? '#00e676' : erVal > 1 ? '#f59e0b' : S.sub
+  const erColor = erVal > 2 ? '#FF7700' : erVal > 1 ? '#f59e0b' : S.sub
 
   return (
     <div
@@ -161,9 +160,9 @@ function PostRow({ post, rank, username }) {
 
 const TOOLTIP_STYLE = {
   contentStyle: {
-    background: '#0d0d14',
-    border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: 10,
+    background: '#2a2a2a',
+    border: '1px solid #3a3a3a',
+    borderRadius: 6,
     fontSize: 12,
     color: S.text,
   },
@@ -230,15 +229,7 @@ export default function OwnPerformance({ allPosts, competitors }) {
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div>
-        <h2
-          className="text-xl font-bold mb-1"
-          style={{
-            background: 'linear-gradient(135deg, #00e676 0%, #00b4d8 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}
-        >
+        <h2 className="text-lg font-semibold mb-1" style={{ color: S.text }}>
           Our Performance
         </h2>
         <p className="text-xs" style={{ color: S.muted }}>
@@ -252,7 +243,7 @@ export default function OwnPerformance({ allPosts, competitors }) {
           label="RISE avg ER"
           value={`${riseER.toFixed(2)}%`}
           sub={riseER > compER ? `↑ ${(riseER - compER).toFixed(2)}% above comp avg` : `↓ ${(compER - riseER).toFixed(2)}% below comp avg`}
-          gradient="linear-gradient(135deg, rgba(0,230,118,0.1) 0%, rgba(0,230,118,0.04) 100%)"
+          gradient="linear-gradient(135deg, rgba(255,119,0,0.1) 0%, rgba(255,119,0,0.04) 100%)"
         />
         <GradientStat
           label="RISEx avg ER"
@@ -291,7 +282,7 @@ export default function OwnPerformance({ allPosts, competitors }) {
                 <YAxis tick={{ fill: S.muted, fontSize: 10 }} axisLine={false} tickLine={false} width={40} tickFormatter={v => `${v}%`} />
                 <Tooltip {...TOOLTIP_STYLE} formatter={v => [`${v.toFixed(3)}%`, '']} />
                 <Legend wrapperStyle={{ fontSize: 11, color: S.sub }} />
-                <Line type="monotone" dataKey="RISE" stroke="#00e676" strokeWidth={2} dot={false} connectNulls name="RISE" />
+                <Line type="monotone" dataKey="RISE" stroke="#FF7700" strokeWidth={2} dot={false} connectNulls name="RISE" />
                 <Line type="monotone" dataKey="RISEx" stroke="#6366f1" strokeWidth={2} dot={false} connectNulls name="RISEx" />
               </LineChart>
             </ResponsiveContainer>
@@ -366,7 +357,7 @@ export default function OwnPerformance({ allPosts, competitors }) {
                 className="px-3 py-1 text-xs font-medium rounded-lg transition-all"
                 style={
                   sortBy === k
-                    ? { background: 'rgba(0,230,118,0.12)', color: '#00e676', border: '1px solid rgba(0,230,118,0.2)' }
+                    ? { background: 'rgba(255,119,0,0.12)', color: '#FF7700', border: '1px solid rgba(255,119,0,0.2)' }
                     : { color: S.muted, border: '1px solid rgba(255,255,255,0.06)' }
                 }
               >

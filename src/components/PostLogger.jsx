@@ -14,12 +14,12 @@ const EMPTY_FORM = {
 }
 
 const inputBase = {
-  backgroundColor: '#0d0d1a',
-  border: '1px solid #1a1a2e',
+  backgroundColor: '#1e1e1e',
+  border: '1px solid #2d2d2d',
   borderRadius: '8px',
   padding: '10px 12px',
   fontSize: '14px',
-  color: '#e2e8f0',
+  color: '#e8e8e8',
   width: '100%',
   outline: 'none',
   transition: 'border-color 0.15s',
@@ -32,7 +32,7 @@ function Field({ label, error, children }) {
     <div>
       <label
         className="block text-xs font-medium uppercase tracking-wider mb-1.5"
-        style={{ color: '#6b7280' }}
+        style={{ color: '#888888' }}
       >
         {label}
       </label>
@@ -95,7 +95,7 @@ export default function PostLogger({ competitors, onAddPost }) {
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
         <h2 className="text-xl font-bold text-white">Log Competitor Post</h2>
-        <p className="text-sm mt-1" style={{ color: '#6b7280' }}>
+        <p className="text-sm mt-1" style={{ color: '#888888' }}>
           Manually enter metrics from X/Twitter
         </p>
       </div>
@@ -103,7 +103,7 @@ export default function PostLogger({ competitors, onAddPost }) {
       {success && (
         <div
           className="mb-5 px-4 py-3 rounded-lg text-sm font-medium"
-          style={{ backgroundColor: 'rgba(0,230,118,0.08)', border: '1px solid rgba(0,230,118,0.25)', color: '#00e676' }}
+          style={{ backgroundColor: 'rgba(255,119,0,0.08)', border: '1px solid rgba(255,119,0,0.25)', color: '#FF7700' }}
         >
           ✓ Post logged successfully
         </div>
@@ -111,8 +111,8 @@ export default function PostLogger({ competitors, onAddPost }) {
 
       <form
         onSubmit={handleSubmit}
-        className="rounded-xl p-6 space-y-5"
-        style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e' }}
+        className="rounded-lg p-6 space-y-5"
+        style={{ backgroundColor: '#242424', border: '1px solid #2d2d2d' }}
       >
         <div className="grid grid-cols-2 gap-4">
           <Field label="Competitor *" error={errors.competitor}>
@@ -121,8 +121,8 @@ export default function PostLogger({ competitors, onAddPost }) {
                 value={form.competitor}
                 onChange={set('competitor')}
                 style={{ ...getStyle('competitor'), flex: 1 }}
-                onFocus={e => (e.target.style.borderColor = '#00e676')}
-                onBlur={e => (e.target.style.borderColor = errors.competitor ? '#ef4444' : '#1a1a2e')}
+                onFocus={e => (e.target.style.borderColor = '#FF7700')}
+                onBlur={e => (e.target.style.borderColor = errors.competitor ? '#ef4444' : '#2d2d2d')}
               >
                 <option value="">Select…</option>
                 {competitorList.map(c => <option key={c} value={c}>{c}</option>)}
@@ -134,9 +134,9 @@ export default function PostLogger({ competitors, onAddPost }) {
                   rel="noopener noreferrer"
                   title={`Open ${form.competitor} on X`}
                   className="flex items-center justify-center px-2.5 rounded-lg text-xs font-medium flex-shrink-0 transition-colors"
-                  style={{ backgroundColor: '#0d0d1a', border: '1px solid #1a1a2e', color: '#6b7280' }}
-                  onMouseEnter={e => { e.currentTarget.style.color = '#e2e8f0'; e.currentTarget.style.borderColor = '#2a2a3e' }}
-                  onMouseLeave={e => { e.currentTarget.style.color = '#6b7280'; e.currentTarget.style.borderColor = '#1a1a2e' }}
+                  style={{ backgroundColor: '#1e1e1e', border: '1px solid #2d2d2d', color: '#888888' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#e8e8e8'; e.currentTarget.style.borderColor = '#3a3a3a' }}
+                  onMouseLeave={e => { e.currentTarget.style.color = '#888888'; e.currentTarget.style.borderColor = '#2d2d2d' }}
                 >
                   𝕏
                 </a>
@@ -149,8 +149,8 @@ export default function PostLogger({ competitors, onAddPost }) {
               value={form.category}
               onChange={set('category')}
               style={getStyle('category')}
-              onFocus={e => (e.target.style.borderColor = '#00e676')}
-              onBlur={e => (e.target.style.borderColor = errors.category ? '#ef4444' : '#1a1a2e')}
+              onFocus={e => (e.target.style.borderColor = '#FF7700')}
+              onBlur={e => (e.target.style.borderColor = errors.category ? '#ef4444' : '#2d2d2d')}
             >
               <option value="">Select…</option>
               {CONTENT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -165,8 +165,8 @@ export default function PostLogger({ competitors, onAddPost }) {
               value={form.postDate}
               onChange={set('postDate')}
               style={getStyle('postDate')}
-              onFocus={e => (e.target.style.borderColor = '#00e676')}
-              onBlur={e => (e.target.style.borderColor = errors.postDate ? '#ef4444' : '#1a1a2e')}
+              onFocus={e => (e.target.style.borderColor = '#FF7700')}
+              onBlur={e => (e.target.style.borderColor = errors.postDate ? '#ef4444' : '#2d2d2d')}
             />
           </Field>
 
@@ -177,8 +177,8 @@ export default function PostLogger({ competitors, onAddPost }) {
               onChange={set('postUrl')}
               placeholder="https://x.com/…"
               style={inputBase}
-              onFocus={e => (e.target.style.borderColor = '#00e676')}
-              onBlur={e => (e.target.style.borderColor = '#1a1a2e')}
+              onFocus={e => (e.target.style.borderColor = '#FF7700')}
+              onBlur={e => (e.target.style.borderColor = '#2d2d2d')}
             />
           </Field>
         </div>
@@ -190,8 +190,8 @@ export default function PostLogger({ competitors, onAddPost }) {
             rows={4}
             placeholder="Paste tweet content here…"
             style={{ ...inputBase, resize: 'vertical', minHeight: '96px' }}
-            onFocus={e => (e.target.style.borderColor = '#00e676')}
-            onBlur={e => (e.target.style.borderColor = '#1a1a2e')}
+            onFocus={e => (e.target.style.borderColor = '#FF7700')}
+            onBlur={e => (e.target.style.borderColor = '#2d2d2d')}
           />
         </Field>
 
@@ -210,8 +210,8 @@ export default function PostLogger({ competitors, onAddPost }) {
                 onChange={set(field)}
                 placeholder="0"
                 style={getStyle(field)}
-                onFocus={e => (e.target.style.borderColor = '#00e676')}
-                onBlur={e => (e.target.style.borderColor = errors[field] ? '#ef4444' : '#1a1a2e')}
+                onFocus={e => (e.target.style.borderColor = '#FF7700')}
+                onBlur={e => (e.target.style.borderColor = errors[field] ? '#ef4444' : '#2d2d2d')}
               />
             </Field>
           ))}
@@ -220,7 +220,7 @@ export default function PostLogger({ competitors, onAddPost }) {
         <button
           type="submit"
           className="w-full font-semibold py-3 rounded-lg text-sm transition-opacity"
-          style={{ backgroundColor: '#00e676', color: '#000' }}
+          style={{ backgroundColor: '#FF7700', color: '#000' }}
           onMouseEnter={e => (e.target.style.opacity = '0.9')}
           onMouseLeave={e => (e.target.style.opacity = '1')}
         >

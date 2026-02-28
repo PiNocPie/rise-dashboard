@@ -26,7 +26,7 @@ function SortBtn({ field, current, dir, onClick, children }) {
     <button
       onClick={() => onClick(field)}
       className="flex items-center gap-1 text-xs font-medium transition-colors"
-      style={{ color: active ? '#00e676' : '#6b7280' }}
+      style={{ color: active ? '#FF7700' : '#888888' }}
     >
       {children}
       {active && <span style={{ fontSize: 9 }}>{dir === 'desc' ? '▼' : '▲'}</span>}
@@ -93,12 +93,12 @@ export default function TopPosts({ posts, allCompetitors, onDeletePost, isLogged
   }, [posts])
 
   const selectStyle = {
-    backgroundColor: '#11111e',
-    border: '1px solid #1a1a2e',
+    backgroundColor: '#242424',
+    border: '1px solid #2d2d2d',
     borderRadius: '8px',
     padding: '7px 10px',
     fontSize: '13px',
-    color: '#9ca3af',
+    color: '#888888',
     outline: 'none',
   }
 
@@ -107,7 +107,7 @@ export default function TopPosts({ posts, allCompetitors, onDeletePost, isLogged
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h2 className="text-xl font-bold text-white">All Posts</h2>
-          <p className="text-sm mt-0.5" style={{ color: '#6b7280' }}>
+          <p className="text-sm mt-0.5" style={{ color: '#888888' }}>
             {processed.length} of {posts.length} posts
           </p>
         </div>
@@ -134,10 +134,10 @@ export default function TopPosts({ posts, allCompetitors, onDeletePost, isLogged
 
       {/* Sort bar */}
       <div
-        className="flex items-center gap-4 px-4 py-2.5 rounded-t-xl text-xs"
-        style={{ backgroundColor: '#0d0d1a', border: '1px solid #1a1a2e', borderBottom: 'none' }}
+        className="flex items-center gap-4 px-4 py-2.5 rounded-t-lg text-xs"
+        style={{ backgroundColor: '#1e1e1e', border: '1px solid #2d2d2d', borderBottom: 'none' }}
       >
-        <span style={{ color: '#374151', marginRight: 4 }}>Sort by:</span>
+        <span style={{ color: '#555555', marginRight: 4 }}>Sort by:</span>
         {SORT_OPTIONS.map(opt => (
           <SortBtn key={opt.value} field={opt.value} current={sortField} dir={sortDir} onClick={handleSort}>
             {opt.label}
@@ -148,47 +148,47 @@ export default function TopPosts({ posts, allCompetitors, onDeletePost, isLogged
       {/* Table */}
       {processed.length === 0 ? (
         <div
-          className="flex items-center justify-center py-16 rounded-b-xl text-sm"
-          style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e', color: '#374151' }}
+          className="flex items-center justify-center py-16 rounded-b-lg text-sm"
+          style={{ backgroundColor: '#242424', border: '1px solid #2d2d2d', color: '#555555' }}
         >
           {posts.length === 0 ? 'No posts logged yet.' : 'No posts match the current filters.'}
         </div>
       ) : (
-        <div className="rounded-b-xl overflow-hidden" style={{ border: '1px solid #1a1a2e' }}>
+        <div className="rounded-b-lg overflow-hidden" style={{ border: '1px solid #2d2d2d' }}>
           <table className="w-full text-sm">
             <thead>
-              <tr style={{ backgroundColor: '#11111e', borderBottom: '1px solid #1a1a2e' }}>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#4b5563', width: 90 }}>Date</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#4b5563', width: 110 }}>Competitor</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#4b5563' }}>Category</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#4b5563' }}>Post</th>
-                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: '#4b5563', width: 80 }}>Views</th>
-                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: '#4b5563', width: 70 }}>Likes</th>
-                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: '#4b5563', width: 70 }}>RTs</th>
-                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: '#4b5563', width: 80 }}>ER %</th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider" style={{ color: '#4b5563', width: 60 }}></th>
+              <tr style={{ backgroundColor: '#242424', borderBottom: '1px solid #2d2d2d' }}>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#555555', width: 90 }}>Date</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#555555', width: 110 }}>Competitor</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#555555' }}>Category</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#555555' }}>Post</th>
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: '#555555', width: 80 }}>Views</th>
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: '#555555', width: 70 }}>Likes</th>
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: '#555555', width: 70 }}>RTs</th>
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: '#555555', width: 80 }}>ER %</th>
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider" style={{ color: '#555555', width: 60 }}></th>
               </tr>
             </thead>
             <tbody>
               {processed.map((post, i) => {
                 const isExpanded = expandedId === post.id
-                const catColor = CATEGORY_COLORS[post.category] || '#4b5563'
+                const catColor = CATEGORY_COLORS[post.category] || '#555555'
                 const compColor = COMPETITOR_COLORS[post.competitor] || '#6366f1'
                 return (
                   <tr
                     key={post.id}
                     style={{
-                      backgroundColor: i % 2 === 0 ? '#11111e' : '#0f0f1b',
-                      borderTop: '1px solid #1a1a2e',
+                      backgroundColor: i % 2 === 0 ? '#242424' : '#1e1e1e',
+                      borderTop: '1px solid #2d2d2d',
                     }}
                   >
-                    <td className="px-4 py-3 text-xs tabular-nums" style={{ color: '#6b7280' }}>
+                    <td className="px-4 py-3 text-xs tabular-nums" style={{ color: '#888888' }}>
                       {post.postDate || '—'}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
                         <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: compColor }} />
-                        <span className="font-medium text-xs" style={{ color: '#e2e8f0' }}>{post.competitor}</span>
+                        <span className="font-medium text-xs" style={{ color: '#e8e8e8' }}>{post.competitor}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3">
@@ -206,7 +206,7 @@ export default function TopPosts({ posts, allCompetitors, onDeletePost, isLogged
                         <div>
                           <p
                             className="text-xs leading-relaxed cursor-pointer"
-                            style={{ color: '#9ca3af' }}
+                            style={{ color: '#888888' }}
                             onClick={() => setExpandedId(isExpanded ? null : post.id)}
                           >
                             {isExpanded
@@ -238,19 +238,19 @@ export default function TopPosts({ posts, allCompetitors, onDeletePost, isLogged
                           ↗ View post
                         </a>
                       ) : (
-                        <span style={{ color: '#374151' }}>—</span>
+                        <span style={{ color: '#555555' }}>—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right text-xs tabular-nums font-medium" style={{ color: '#e2e8f0' }}>
+                    <td className="px-4 py-3 text-right text-xs tabular-nums font-medium" style={{ color: '#e8e8e8' }}>
                       {fmtNum(post.views)}
                     </td>
-                    <td className="px-4 py-3 text-right text-xs tabular-nums" style={{ color: '#9ca3af' }}>
+                    <td className="px-4 py-3 text-right text-xs tabular-nums" style={{ color: '#888888' }}>
                       {fmtNum(post.likes)}
                     </td>
-                    <td className="px-4 py-3 text-right text-xs tabular-nums" style={{ color: '#9ca3af' }}>
+                    <td className="px-4 py-3 text-right text-xs tabular-nums" style={{ color: '#888888' }}>
                       {fmtNum(post.retweets)}
                     </td>
-                    <td className="px-4 py-3 text-right text-xs tabular-nums font-semibold" style={{ color: '#00e676' }}>
+                    <td className="px-4 py-3 text-right text-xs tabular-nums font-semibold" style={{ color: '#FF7700' }}>
                       {post._er > 0 ? `${post._er.toFixed(2)}%` : '—'}
                     </td>
                     <td className="px-4 py-3 text-center">
@@ -266,7 +266,7 @@ export default function TopPosts({ posts, allCompetitors, onDeletePost, isLogged
                           <button
                             onClick={() => setConfirmDelete(null)}
                             className="text-xs px-2 py-0.5 rounded"
-                            style={{ color: '#4b5563' }}
+                            style={{ color: '#555555' }}
                           >
                             ✕
                           </button>
@@ -275,9 +275,9 @@ export default function TopPosts({ posts, allCompetitors, onDeletePost, isLogged
                         <button
                           onClick={() => setConfirmDelete(post.id)}
                           className="text-xs transition-colors"
-                          style={{ color: '#374151' }}
+                          style={{ color: '#555555' }}
                           onMouseEnter={e => (e.target.style.color = '#f87171')}
-                          onMouseLeave={e => (e.target.style.color = '#374151')}
+                          onMouseLeave={e => (e.target.style.color = '#555555')}
                         >
                           ✕
                         </button>

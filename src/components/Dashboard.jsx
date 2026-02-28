@@ -36,9 +36,9 @@ function fmtNum(n) {
 
 function Stat({ label, value, accent }) {
   return (
-    <div className="rounded-lg p-3" style={{ backgroundColor: '#0a0a12', border: '1px solid #1a1a2e' }}>
-      <div className="text-xs uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>{label}</div>
-      <div className="text-lg font-bold" style={{ color: accent || '#e2e8f0' }}>{value}</div>
+    <div className="rounded p-3" style={{ backgroundColor: '#1e1e1e', border: '1px solid #2d2d2d' }}>
+      <div className="text-xs uppercase tracking-wider mb-1" style={{ color: '#555' }}>{label}</div>
+      <div className="text-lg font-bold" style={{ color: accent || '#e8e8e8' }}>{value}</div>
     </div>
   )
 }
@@ -75,30 +75,28 @@ function CompetitorCard({ competitor, posts, color }) {
 
   return (
     <div
-      className="rounded-xl p-5 flex flex-col gap-4"
-      style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e' }}
+      className="rounded-lg p-5 flex flex-col gap-4"
+      style={{ backgroundColor: '#242424', border: '1px solid #2d2d2d' }}
     >
       {/* Header */}
       <div className="flex items-center gap-2.5">
-        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-        <span className="font-bold text-white text-base">{competitor}</span>
+        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+        <span className="font-semibold text-sm" style={{ color: '#e8e8e8' }}>{competitor}</span>
         {twitterUrl && (
           <a
             href={twitterUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium transition-colors"
-            style={{ color: '#6b7280', border: '1px solid #1a1a2e' }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#e2e8f0'; e.currentTarget.style.borderColor = '#2a2a3e' }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#6b7280'; e.currentTarget.style.borderColor = '#1a1a2e' }}
+            className="flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium"
+            style={{ color: '#555', border: '1px solid #2d2d2d' }}
           >
             <XIcon />
             <span>Profile</span>
           </a>
         )}
         <span
-          className="ml-auto text-xs px-2 py-0.5 rounded-full"
-          style={{ backgroundColor: '#0d0d1a', border: '1px solid #1a1a2e', color: '#6b7280' }}
+          className="ml-auto text-xs px-2 py-0.5 rounded"
+          style={{ backgroundColor: '#1e1e1e', border: '1px solid #2d2d2d', color: '#555' }}
         >
           {posts.length} posts
         </span>
@@ -106,15 +104,15 @@ function CompetitorCard({ competitor, posts, color }) {
 
       {/* Twitter followers */}
       {(twLoading || twMetrics) && (
-        <div className="flex items-center gap-3 px-3 py-2 rounded-lg" style={{ backgroundColor: '#0a0a12', border: '1px solid #1a1a2e' }}>
+        <div className="flex items-center gap-3 px-3 py-2 rounded" style={{ backgroundColor: '#1e1e1e', border: '1px solid #2d2d2d' }}>
           <XIcon />
           {twLoading ? (
-            <span className="text-xs" style={{ color: '#4b5563' }}>Loading…</span>
+            <span className="text-xs" style={{ color: '#555' }}>Loading…</span>
           ) : (
             <>
-              <span className="text-sm font-bold text-white">{fmtFollowers(twMetrics.followers_count)}</span>
-              <span className="text-xs" style={{ color: '#4b5563' }}>followers</span>
-              <span className="ml-auto text-xs" style={{ color: '#4b5563' }}>
+              <span className="text-sm font-bold" style={{ color: '#e8e8e8' }}>{fmtFollowers(twMetrics.followers_count)}</span>
+              <span className="text-xs" style={{ color: '#555' }}>followers</span>
+              <span className="ml-auto text-xs" style={{ color: '#555' }}>
                 {fmtFollowers(twMetrics.tweet_count)} tweets
               </span>
             </>
@@ -126,31 +124,31 @@ function CompetitorCard({ competitor, posts, color }) {
       <div className="grid grid-cols-2 gap-2">
         <Stat label="Avg Views" value={avgViews} />
         <Stat label="Avg Likes" value={avgLikes} />
-        <Stat label="Avg ER" value={posts.length ? `${avgER}%` : '—'} accent={posts.length ? '#00e676' : undefined} />
+        <Stat label="Avg ER" value={posts.length ? `${avgER}%` : '—'} accent={posts.length ? '#FF7700' : undefined} />
         <Stat label="Posts / wk" value={freq} />
       </div>
 
       {/* Top categories */}
       {cats.length > 0 ? (
         <div>
-          <div className="text-xs uppercase tracking-wider mb-2" style={{ color: '#4b5563' }}>Content Mix</div>
+          <div className="text-xs uppercase tracking-wider mb-2" style={{ color: '#555' }}>Content Mix</div>
           <div className="space-y-2">
             {cats.map(({ cat, pct }) => (
               <div key={cat} className="flex items-center gap-2">
-                <div className="flex-1 rounded-full overflow-hidden" style={{ height: '4px', backgroundColor: '#1a1a2e' }}>
+                <div className="flex-1 rounded-full overflow-hidden" style={{ height: '3px', backgroundColor: '#2d2d2d' }}>
                   <div
                     className="h-full rounded-full"
                     style={{ width: `${pct}%`, backgroundColor: CATEGORY_COLORS[cat] || color }}
                   />
                 </div>
-                <span className="text-xs truncate max-w-[110px]" style={{ color: '#9ca3af' }}>{cat}</span>
-                <span className="text-xs w-8 text-right" style={{ color: '#6b7280' }}>{pct}%</span>
+                <span className="text-xs truncate max-w-[110px]" style={{ color: '#888' }}>{cat}</span>
+                <span className="text-xs w-8 text-right" style={{ color: '#555' }}>{pct}%</span>
               </div>
             ))}
           </div>
         </div>
       ) : (
-        <p className="text-xs italic" style={{ color: '#374151' }}>No posts logged yet</p>
+        <p className="text-xs italic" style={{ color: '#444' }}>No posts logged yet</p>
       )}
     </div>
   )
@@ -167,8 +165,8 @@ function HotThisWeek({ posts }) {
 
   return (
     <div className="mb-8">
-      <div className="text-xs uppercase tracking-wider mb-3 font-medium" style={{ color: '#4b5563' }}>
-        🔥 Hot This Week — top tweets by views
+      <div className="text-xs uppercase tracking-wider mb-3 font-medium" style={{ color: '#555' }}>
+        Hot This Week — top tweets by views
       </div>
       <div className="flex flex-col gap-2">
         {recent.map((post, i) => {
@@ -183,32 +181,32 @@ function HotThisWeek({ posts }) {
           return (
             <div
               key={post.id || i}
-              className="flex items-start gap-3 px-4 py-3 rounded-xl"
-              style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e' }}
+              className="flex items-start gap-3 px-4 py-3 rounded-lg"
+              style={{ backgroundColor: '#242424', border: '1px solid #2d2d2d' }}
             >
-              <span className="text-lg font-bold w-5 text-center flex-shrink-0" style={{ color: i === 0 ? '#00e676' : '#374151' }}>
+              <span className="text-sm font-bold w-5 text-center flex-shrink-0" style={{ color: i === 0 ? '#FF7700' : '#444' }}>
                 {i + 1}
               </span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                  <span className="text-xs font-bold text-white">{post.competitor}</span>
-                  <span className="text-xs" style={{ color: '#4b5563' }}>{new Date(post.postDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
+                  <span className="text-xs font-semibold" style={{ color: '#e8e8e8' }}>{post.competitor}</span>
+                  <span className="text-xs" style={{ color: '#555' }}>{new Date(post.postDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
                 </div>
-                <p className="text-xs leading-relaxed line-clamp-2" style={{ color: '#9ca3af' }}>{post.postText}</p>
+                <p className="text-xs leading-relaxed line-clamp-2" style={{ color: '#888' }}>{post.postText}</p>
               </div>
               <div className="flex flex-col items-end gap-1 flex-shrink-0 text-right">
-                <span className="text-sm font-bold text-white">{fmtNum(post.views)}</span>
-                <span className="text-xs" style={{ color: '#4b5563' }}>views</span>
-                {er && <span className="text-xs font-medium" style={{ color: '#00e676' }}>{er}% ER</span>}
+                <span className="text-sm font-bold" style={{ color: '#e8e8e8' }}>{fmtNum(post.views)}</span>
+                <span className="text-xs" style={{ color: '#555' }}>views</span>
+                {er && <span className="text-xs font-medium" style={{ color: '#FF7700' }}>{er}% ER</span>}
               </div>
               {tweetUrl && (
                 <a
                   href={tweetUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs px-2 py-1 rounded-lg flex-shrink-0 self-center"
-                  style={{ backgroundColor: '#1a1a2e', color: '#6b7280', border: '1px solid #2a2a3e' }}
+                  className="text-xs px-2 py-1 rounded flex-shrink-0 self-center"
+                  style={{ backgroundColor: '#1e1e1e', color: '#888', border: '1px solid #2d2d2d' }}
                 >
                   ↗
                 </a>
@@ -224,12 +222,12 @@ function HotThisWeek({ posts }) {
 function GlobalStat({ label, value, sub, accent }) {
   return (
     <div
-      className="rounded-xl p-4 flex flex-col gap-1"
-      style={{ backgroundColor: '#11111e', border: '1px solid #1a1a2e' }}
+      className="rounded-lg p-4 flex flex-col gap-1"
+      style={{ backgroundColor: '#242424', border: '1px solid #2d2d2d' }}
     >
-      <div className="text-xs uppercase tracking-wider" style={{ color: '#4b5563' }}>{label}</div>
-      <div className="text-2xl font-bold" style={{ color: accent || '#e2e8f0' }}>{value}</div>
-      {sub && <div className="text-xs" style={{ color: '#6b7280' }}>{sub}</div>}
+      <div className="text-xs uppercase tracking-wider" style={{ color: '#555' }}>{label}</div>
+      <div className="text-2xl font-bold" style={{ color: accent || '#e8e8e8' }}>{value}</div>
+      {sub && <div className="text-xs" style={{ color: '#888' }}>{sub}</div>}
     </div>
   )
 }
@@ -262,8 +260,8 @@ export default function Dashboard({ posts, competitors }) {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-white">RISE Chain — Overview</h2>
-          <p className="text-sm mt-0.5" style={{ color: '#6b7280' }}>
+          <h2 className="text-lg font-semibold" style={{ color: '#e8e8e8' }}>Overview</h2>
+          <p className="text-xs mt-0.5" style={{ color: '#888' }}>
             {competitors.length} competitors tracked
           </p>
         </div>
@@ -273,7 +271,7 @@ export default function Dashboard({ posts, competitors }) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <GlobalStat label="Total Posts" value={totalPosts} />
         <GlobalStat label="Avg Views" value={avgViews} />
-        <GlobalStat label="Avg Eng. Rate" value={`${avgER}%`} accent="#00e676" />
+        <GlobalStat label="Avg Eng. Rate" value={`${avgER}%`} accent="#FF7700" />
         <GlobalStat label="Most Viral Tweet" value={mostViral} sub={viralCompetitor} accent="#f59e0b" />
       </div>
 

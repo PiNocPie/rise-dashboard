@@ -33,21 +33,21 @@ function extractProjects(text) {
 // ─── design tokens ────────────────────────────────────────────────────────────
 
 const S = {
-  surface: '#0a0a0f',
-  border: 'rgba(255,255,255,0.06)',
-  text: '#f0f4ff',
-  sub: '#9ca3af',
-  muted: '#4b5563',
+  surface: '#242424',
+  border: '#2d2d2d',
+  text: '#e8e8e8',
+  sub: '#888888',
+  muted: '#555555',
+  accent: '#FF7700',
 }
 
 function Card({ children, style = {} }) {
   return (
     <div
-      className="rounded-2xl p-5"
+      className="rounded-lg p-5"
       style={{
         background: S.surface,
         border: `1px solid ${S.border}`,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.02)',
         ...style,
       }}
     >
@@ -72,9 +72,9 @@ function PartnershipCard({ post }) {
 
   return (
     <div
-      className="rounded-xl p-4 transition-all"
+      className="rounded-lg p-4"
       style={{
-        background: '#0d0d14',
+        background: '#1e1e1e',
         border: `1px solid ${S.border}`,
         borderLeft: `2px solid ${color}`,
       }}
@@ -90,7 +90,7 @@ function PartnershipCard({ post }) {
           {isOwn && (
             <span
               className="text-xs px-2 py-0.5 rounded-full font-medium"
-              style={{ background: 'rgba(0,230,118,0.1)', color: '#00e676', border: '1px solid rgba(0,230,118,0.2)' }}
+              style={{ background: 'rgba(255,119,0,0.1)', color: '#FF7700', border: '1px solid rgba(255,119,0,0.2)' }}
             >
               ours
             </span>
@@ -204,15 +204,7 @@ export default function Partnerships({ allPosts, competitors }) {
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div>
-        <h2
-          className="text-xl font-bold mb-1"
-          style={{
-            background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}
-        >
+        <h2 className="text-lg font-semibold mb-1" style={{ color: S.text }}>
           Ecosystem & Partnerships
         </h2>
         <p className="text-xs" style={{ color: S.muted }}>
@@ -259,13 +251,13 @@ export default function Partnerships({ allPosts, competitors }) {
             {countByCompetitor.map(([name, count]) => {
               const maxC = countByCompetitor[0][1] || 1
               const isOwn = OWN_ACCOUNTS.includes(name)
-              const color = isOwn ? (OWN_ACCOUNT_COLORS[name] || '#00e676') : (COMPETITOR_COLORS[name] || '#6366f1')
+              const color = isOwn ? (OWN_ACCOUNT_COLORS[name] || '#FF7700') : (COMPETITOR_COLORS[name] || '#6366f1')
               return (
                 <div key={name}>
                   <div className="flex justify-between items-center mb-1">
                     <div className="flex items-center gap-2">
                       <span className="text-xs" style={{ color: S.text }}>{name}</span>
-                      {isOwn && <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,230,118,0.1)', color: '#00e676' }}>us</span>}
+                      {isOwn && <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'rgba(255,119,0,0.1)', color: '#FF7700' }}>us</span>}
                     </div>
                     <span className="text-xs font-medium" style={{ color }}>{count}</span>
                   </div>
@@ -319,7 +311,7 @@ export default function Partnerships({ allPosts, competitors }) {
               className="text-xs px-3 py-1 rounded-lg font-medium transition-all"
               style={
                 showOwn
-                  ? { background: 'rgba(0,230,118,0.1)', color: '#00e676', border: '1px solid rgba(0,230,118,0.2)' }
+                  ? { background: 'rgba(255,119,0,0.1)', color: '#FF7700', border: '1px solid rgba(255,119,0,0.2)' }
                   : { color: S.muted, border: '1px solid rgba(255,255,255,0.06)' }
               }
             >

@@ -104,7 +104,7 @@ function AccountRow({ name, posts, color, twitterUrl, username, isOwn, idx }) {
   return (
     <div
       className="flex items-center gap-6 px-6 py-5"
-      style={{ borderBottom: '1px solid #111' }}
+      style={{ borderBottom: '1px solid #2d2d2d' }}
     >
       {/* Left: name + handle */}
       <div style={{ width: 200, flexShrink: 0 }}>
@@ -116,7 +116,7 @@ function AccountRow({ name, posts, color, twitterUrl, username, isOwn, idx }) {
               us
             </span>
           )}
-          <span className="text-xs" style={{ color: '#555' }}>{dateStr}</span>
+          <span className="text-xs" style={{ color: '#888888' }}>{dateStr}</span>
         </div>
         {twitterUrl && (
           <a
@@ -124,7 +124,7 @@ function AccountRow({ name, posts, color, twitterUrl, username, isOwn, idx }) {
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs ml-4"
-            style={{ color: '#444' }}
+            style={{ color: '#555555' }}
           >
             @{username}
           </a>
@@ -138,7 +138,7 @@ function AccountRow({ name, posts, color, twitterUrl, username, isOwn, idx }) {
 
       {/* Right: post count */}
       <div style={{ width: 100, flexShrink: 0, textAlign: 'right' }}>
-        <div className="text-xs uppercase tracking-widest mb-1" style={{ color: '#444' }}>Posts</div>
+        <div className="text-xs uppercase tracking-widest mb-1" style={{ color: '#555555' }}>Posts</div>
         <div className="font-bold text-white" style={{ fontSize: 22 }}>{fmtNum(total)}</div>
       </div>
     </div>
@@ -156,24 +156,24 @@ export default function ActivityChart({ posts, competitors }) {
   ), [posts, competitors])
 
   return (
-    <div style={{ backgroundColor: '#000', minHeight: '100vh', margin: '-2rem', padding: '2rem' }}>
+    <div style={{ backgroundColor: '#1e1e1e', minHeight: '100vh', margin: '-2rem', padding: '2rem' }}>
       {/* Header */}
       <div className="mb-8">
         <h2 className="text-xl font-bold text-white mb-1">Posting Activity</h2>
-        <p className="text-sm" style={{ color: '#555' }}>60-day volume · sorted by total posts</p>
+        <p className="text-sm" style={{ color: '#888888' }}>60-day volume · sorted by total posts</p>
       </div>
 
       {/* Competitor rows */}
-      <div style={{ border: '1px solid #111', borderRadius: 12, overflow: 'hidden', backgroundColor: '#000' }}>
-        <div className="px-6 py-3 flex items-center gap-6" style={{ borderBottom: '1px solid #111' }}>
+      <div style={{ border: '1px solid #2d2d2d', borderRadius: 12, overflow: 'hidden', backgroundColor: '#242424' }}>
+        <div className="px-6 py-3 flex items-center gap-6" style={{ borderBottom: '1px solid #2d2d2d' }}>
           <div style={{ width: 200, flexShrink: 0 }}>
-            <span className="text-xs uppercase tracking-widest" style={{ color: '#444' }}>Competitor</span>
+            <span className="text-xs uppercase tracking-widest" style={{ color: '#555555' }}>Competitor</span>
           </div>
           <div className="flex-1">
-            <span className="text-xs uppercase tracking-widest" style={{ color: '#444' }}>Activity (60 days)</span>
+            <span className="text-xs uppercase tracking-widest" style={{ color: '#555555' }}>Activity (60 days)</span>
           </div>
           <div style={{ width: 100, flexShrink: 0, textAlign: 'right' }}>
-            <span className="text-xs uppercase tracking-widest" style={{ color: '#444' }}>Total</span>
+            <span className="text-xs uppercase tracking-widest" style={{ color: '#555555' }}>Total</span>
           </div>
         </div>
 
@@ -194,19 +194,19 @@ export default function ActivityChart({ posts, competitors }) {
       {/* Our Accounts section */}
       <div className="mt-10 mb-4">
         <h3 className="text-base font-bold text-white mb-1">Our Accounts</h3>
-        <p className="text-sm" style={{ color: '#555' }}>Benchmark against our own performance</p>
+        <p className="text-sm" style={{ color: '#888888' }}>Benchmark against our own performance</p>
       </div>
 
-      <div style={{ border: '1px solid #111', borderRadius: 12, overflow: 'hidden', backgroundColor: '#000' }}>
-        <div className="px-6 py-3 flex items-center gap-6" style={{ borderBottom: '1px solid #111' }}>
+      <div style={{ border: '1px solid #2d2d2d', borderRadius: 12, overflow: 'hidden', backgroundColor: '#242424' }}>
+        <div className="px-6 py-3 flex items-center gap-6" style={{ borderBottom: '1px solid #2d2d2d' }}>
           <div style={{ width: 200, flexShrink: 0 }}>
-            <span className="text-xs uppercase tracking-widest" style={{ color: '#444' }}>Account</span>
+            <span className="text-xs uppercase tracking-widest" style={{ color: '#555555' }}>Account</span>
           </div>
           <div className="flex-1">
-            <span className="text-xs uppercase tracking-widest" style={{ color: '#444' }}>Activity (60 days)</span>
+            <span className="text-xs uppercase tracking-widest" style={{ color: '#555555' }}>Activity (60 days)</span>
           </div>
           <div style={{ width: 100, flexShrink: 0, textAlign: 'right' }}>
-            <span className="text-xs uppercase tracking-widest" style={{ color: '#444' }}>Total</span>
+            <span className="text-xs uppercase tracking-widest" style={{ color: '#555555' }}>Total</span>
           </div>
         </div>
 
