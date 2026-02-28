@@ -15,23 +15,54 @@ import Partnerships from './components/Partnerships'
 import Mentions from './components/Mentions'
 import DiscordDashboard from './components/DiscordDashboard'
 
-const TABS = [
-  { id: 'dashboard',    label: 'Overview' },
-  { id: 'activity',     label: 'Activity' },
-  { id: 'own',          label: 'Our Posts' },
-  { id: 'mentions',     label: 'Mentions' },
-  { id: 'updates',      label: 'Updates' },
-  { id: 'ecosystem',    label: 'Ecosystem' },
-  { id: 'comparison',   label: 'Comparisons' },
-  { id: 'themes',       label: 'Themes' },
-  { id: 'posts',        label: 'All Posts' },
-  { id: 'calendar',     label: 'Calendar' },
+// Two-level navigation: groups + sub-tabs
+const NAV = [
+  {
+    id:    'dashboard',
+    label: 'Overview',
+    tabs:  [], // direct — no sub-tabs
+  },
+  {
+    id:    'competitive',
+    label: 'Competitive',
+    tabs: [
+      { id: 'activity',   label: 'Activity' },
+      { id: 'updates',    label: 'Feed' },
+      { id: 'comparison', label: 'Charts' },
+      { id: 'themes',     label: 'Themes' },
+    ],
+  },
+  {
+    id:    'rise',
+    label: 'Our RISE',
+    tabs: [
+      { id: 'own',      label: 'Performance' },
+      { id: 'mentions', label: 'Mentions' },
+      { id: 'ecosystem', label: 'Ecosystem' },
+    ],
+  },
+  {
+    id:    'data',
+    label: 'Data',
+    tabs: [
+      { id: 'posts',    label: 'All Posts' },
+      { id: 'calendar', label: 'Calendar' },
+    ],
+  },
 ]
+
+// Flat map for lookup: tabId → groupId
+const TAB_TO_GROUP = {}
+NAV.forEach(g => {
+  if (g.tabs.length === 0) TAB_TO_GROUP[g.id] = g.id
+  g.tabs.forEach(t => { TAB_TO_GROUP[t.id] = g.id })
+})
 
 export default function App() {
   const [platform, setPlatform] = useState('twitter')   // 'twitter' | 'discord'
   const [posts, setPosts] = useState([])
   const [activeTab, setActiveTab] = useState('dashboard')
+  const activeGroup = TAB_TO_GROUP[activeTab] || 'dashboard'
   const [importMsg, setImportMsg] = useState(null)
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
@@ -71,6 +102,13 @@ export default function App() {
     }
     return true
   })
+
+  const handleGroupClick = (groupId) => {
+    const group = NAV.find(g => g.id === groupId)
+    if (!group) return
+    // If direct group (no sub-tabs), set activeTab to the group id itself
+    setActiveTab(group.tabs.length > 0 ? group.tabs[0].id : group.id)
+  }
 
   const handleTabClick = (tabId) => {
     setActiveTab(tabId)
@@ -309,35 +347,71 @@ export default function App() {
           </div>
 
           {platform === 'twitter' && (
-            <div className="flex overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-              {TABS.map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => handleTabClick(tab.id)}
-                  className="px-4 py-3 text-xs font-semibold whitespace-nowrap transition-all relative"
-                  style={
-                    activeTab === tab.id
-                      ? { color: '#00e676' }
-                      : { color: '#4b5563' }
-                  }
-                >
-                  {tab.label}
-                  {activeTab === tab.id && (
-                    <span
-                      style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 12,
-                        right: 12,
-                        height: 2,
-                        background: 'linear-gradient(90deg, #00e676, #00b4d8)',
-                        borderRadius: 2,
-                      }}
-                    />
-                  )}
-                </button>
-              ))}
-            </div>
+            <>
+              {/* Primary group row */}
+              <div className="flex items-center gap-1 pt-1">
+                {NAV.map(group => (
+                  <button
+                    key={group.id}
+                    onClick={() => handleGroupClick(group.id)}
+                    className="px-4 py-2.5 text-xs font-semibold rounded-t-lg transition-all relative whitespace-nowrap"
+                    style={
+                      activeGroup === group.id
+                        ? {
+                            color: '#00e676',
+                            background: 'rgba(0,230,118,0.06)',
+                            borderTop: '1px solid rgba(0,230,118,0.15)',
+                            borderLeft: '1px solid rgba(0,230,118,0.08)',
+                            borderRight: '1px solid rgba(0,230,118,0.08)',
+                          }
+                        : { color: '#4b5563' }
+                    }
+                  >
+                    {group.label}
+                    {activeGroup === group.id && (
+                      <span
+                        style={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          height: 2,
+                          background: 'linear-gradient(90deg, #00e676, #00b4d8)',
+                          borderRadius: '2px 2px 0 0',
+                        }}
+                      />
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Sub-tab row — only when active group has sub-tabs */}
+              {(() => {
+                const group = NAV.find(g => g.id === activeGroup)
+                if (!group || group.tabs.length === 0) return null
+                return (
+                  <div
+                    className="flex items-center gap-0.5 px-2 py-1.5"
+                    style={{ background: 'rgba(0,230,118,0.03)', borderTop: '1px solid rgba(255,255,255,0.04)' }}
+                  >
+                    {group.tabs.map(tab => (
+                      <button
+                        key={tab.id}
+                        onClick={() => handleTabClick(tab.id)}
+                        className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap"
+                        style={
+                          activeTab === tab.id
+                            ? { background: 'rgba(0,230,118,0.12)', color: '#00e676', border: '1px solid rgba(0,230,118,0.2)' }
+                            : { color: '#6b7280', border: '1px solid transparent' }
+                        }
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+                )
+              })()}
+            </>
           )}
         </div>
       </header>
