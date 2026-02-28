@@ -174,9 +174,9 @@ function HotThisWeek({ posts }) {
         {recent.map((post, i) => {
           const color = COMPETITOR_COLORS[post.competitor] || '#6366f1'
           const username = COMPETITOR_TWITTER_USERNAMES[post.competitor]
-          const tweetUrl = post.tweetId && username
+          const tweetUrl = (post.tweetId && String(post.tweetId).length > 5 && username)
             ? `https://x.com/${username}/status/${post.tweetId}`
-            : null
+            : post.postUrl || null
           const er = post.views
             ? (((post.likes + post.retweets + post.replies) / post.views) * 100).toFixed(2)
             : null

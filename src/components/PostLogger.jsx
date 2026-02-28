@@ -72,12 +72,16 @@ export default function PostLogger({ competitors, onAddPost }) {
       setErrors(errs)
       return
     }
+    // Extract tweetId from postUrl if present (e.g. x.com/.../status/1234567890)
+    const tweetIdMatch = (form.postUrl || '').match(/\/status\/(\d+)/)
+    const tweetId = tweetIdMatch ? tweetIdMatch[1] : undefined
     onAddPost({
       ...form,
       likes: Number(form.likes) || 0,
       retweets: Number(form.retweets) || 0,
       replies: Number(form.replies) || 0,
       views: Number(form.views) || 0,
+      ...(tweetId ? { tweetId } : {}),
     })
     setForm({ ...EMPTY_FORM, competitor: form.competitor, postDate: today })
     setErrors({})

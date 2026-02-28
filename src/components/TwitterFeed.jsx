@@ -31,9 +31,9 @@ function TweetCard({ post, isLoggedIn, isViral }) {
   const er = engRate(post)
 
   const username = COMPETITOR_TWITTER_USERNAMES[post.competitor]
-  const tweetUrl = post.tweetId && username
+  const tweetUrl = (post.tweetId && String(post.tweetId).length > 5 && username)
     ? `https://x.com/${username}/status/${post.tweetId}`
-    : null
+    : post.postUrl || null
 
   const saveNote = async () => {
     if (!post._docId) return
