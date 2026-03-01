@@ -225,9 +225,10 @@ export default async function handler(req, res) {
   const mentionsAdded = await syncMentions(db, BEARER, startTime, endTime)
   console.log('Mentions sync complete:', mentionsAdded)
 
-  // Send Slack digest if webhook is configured
+  // Build and send daily digest to Slack + Discord
   const slackWebhook = process.env.SLACK_WEBHOOK_URL
-  if (slackWebhook) {
+  const discordWebhook = process.env.DISCORD_DIGEST_WEBHOOK_URL
+  if (slackWebhook || discordWebhook) {
     try {
       function fmtNum(n) {
         if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
@@ -240,22 +241,6 @@ export default async function handler(req, res) {
         return (p.likes + p.retweets + p.replies) / p.views
       }
 
-      function fmtTweet(p, i) {
-        const username = COMPETITOR_USERNAMES[p.competitor]
-        const tweetUrl = username ? `https://x.com/${username}/status/${p.tweetId}` : null
-        const er = p.views ? (erVal(p) * 100).toFixed(2) : null
-        // Show full tweet text — replace newlines with space to keep Slack quote single-block
-        const fullText = (p.postText || '').replace(/\n+/g, ' ')
-        let s = `*${i + 1}. ${p.competitor}* · _${p.category}_\n`
-        s += `> ${fullText}\n`
-        s += `👁 ${fmtNum(p.views)} · ❤️ ${fmtNum(p.likes)} · 🔁 ${fmtNum(p.retweets)}`
-        if (er) s += ` · *ER: ${er}%*`
-        if (tweetUrl) s += `\n<${tweetUrl}|View Tweet →>`
-        return s
-      }
-
-      const DIV = '─────────────────────'
-
       // Pull all posts from last 48h (metrics settled)
       const allSnapshot = await db.collection('posts').get()
       const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
@@ -263,100 +248,118 @@ export default async function handler(req, res) {
         .map(d => d.data())
         .filter(p => p.autoLogged && p.postDate >= cutoff && p.postText && !p.postText.trim().startsWith('@'))
 
-      // Activity summary — who posted vs silent
       const ALL_ACCOUNTS = Object.keys(COMPETITOR_USERNAMES)
       const postedSet = new Set(recent.map(p => p.competitor))
       const active = ALL_ACCOUNTS.filter(c => postedSet.has(c))
       const silent = ALL_ACCOUNTS.filter(c => !postedSet.has(c))
 
-      // Per-competitor highlight: post count + top category + best tweet views
-      const competitorHighlights = active.map(name => {
-        const posts = recent.filter(p => p.competitor === name)
-        const best = [...posts].sort((a, b) => (b.views || 0) - (a.views || 0))[0]
-        const categories = posts.map(p => p.category).filter(Boolean)
-        const topCat = categories.length
-          ? [...categories.reduce((m, c) => m.set(c, (m.get(c) || 0) + 1), new Map())]
-              .sort((a, b) => b[1] - a[1])[0][0]
-          : '—'
-        const username = COMPETITOR_USERNAMES[name]
-        const bestUrl = best?.tweetId && username ? `https://x.com/${username}/status/${best.tweetId}` : null
-        const bestViews = best ? ` · top: ${fmtNum(best.views || 0)} views` : ''
-        const bestLink = bestUrl ? ` · <${bestUrl}|best tweet>` : ''
-        return `• *${name}* — ${posts.length} post${posts.length > 1 ? 's' : ''} · _${topCat}_${bestViews}${bestLink}`
-      })
-
-      // Viral — top 3 by views
       const viral = [...recent].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 3)
       const viralIds = new Set(viral.map(p => p.tweetId))
-
-      // Stand out — top 3 by ER (min 500 views, not already viral)
       const standOut = [...recent]
         .filter(p => (p.views || 0) >= 500 && !viralIds.has(p.tweetId))
         .sort((a, b) => erVal(b) - erVal(a))
         .slice(0, 3)
-
-      // Low engagement — bottom 3 by ER (min 1000 views to filter noise)
       const lowEng = [...recent]
         .filter(p => (p.views || 0) >= 1000)
         .sort((a, b) => erVal(a) - erVal(b))
         .slice(0, 3)
 
       const date = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+      const DIV = '─────────────────────'
+      const DASH_URL = 'https://rise-dashboard-bice.vercel.app'
 
-      let text = `🤖 *RISE Intel — Daily Digest · ${date}*\n\n`
+      function buildDigest(fmt) {
+        const b = (t) => fmt === 'discord' ? `**${t}**` : `*${t}*`
+        const i = (t) => `_${t}_`
+        const link = (label, url) => fmt === 'discord' ? `[${label}](${url})` : `<${url}|${label}>`
 
-      // Section 1: Activity summary + per-competitor highlights
-      text += `📊 *Activity Summary* — ${active.length} of ${ALL_ACCOUNTS.length} posted\n`
-      if (silent.length) text += `_Silent: ${silent.join(', ')}_\n`
-      text += '\n'
-      if (competitorHighlights.length) {
-        text += competitorHighlights.join('\n') + '\n'
+        function fmtTweet(p, idx) {
+          const username = COMPETITOR_USERNAMES[p.competitor]
+          const tweetUrl = username ? `https://x.com/${username}/status/${p.tweetId}` : null
+          const er = p.views ? (erVal(p) * 100).toFixed(2) : null
+          const fullText = (p.postText || '').replace(/\n+/g, ' ').slice(0, 280)
+          let s = `${b(`${idx + 1}. ${p.competitor}`)} · ${i(p.category)}\n`
+          s += `> ${fullText}\n`
+          s += `👁 ${fmtNum(p.views)} · ❤️ ${fmtNum(p.likes)} · 🔁 ${fmtNum(p.retweets)}`
+          if (er) s += ` · ${b('ER: ' + er + '%')}`
+          if (tweetUrl) s += `\n${link('View Tweet →', tweetUrl)}`
+          return s
+        }
+
+        const highlights = active.map(name => {
+          const posts = recent.filter(p => p.competitor === name)
+          const best = [...posts].sort((a, b) => (b.views || 0) - (a.views || 0))[0]
+          const cats = posts.map(p => p.category).filter(Boolean)
+          const topCat = cats.length
+            ? [...cats.reduce((m, c) => m.set(c, (m.get(c) || 0) + 1), new Map())]
+                .sort((a, b) => b[1] - a[1])[0][0]
+            : '—'
+          const username = COMPETITOR_USERNAMES[name]
+          const bestUrl = best?.tweetId && username ? `https://x.com/${username}/status/${best.tweetId}` : null
+          const bestViews = best ? ` · top: ${fmtNum(best.views || 0)} views` : ''
+          const bestLink = bestUrl ? ` · ${link('best tweet', bestUrl)}` : ''
+          return `• ${b(name)} — ${posts.length} post${posts.length > 1 ? 's' : ''} · ${i(topCat)}${bestViews}${bestLink}`
+        })
+
+        let text = `🤖 ${b('RISE Intel — Daily Digest · ' + date)}\n\n`
+        text += `📊 ${b('Activity Summary')} — ${active.length} of ${ALL_ACCOUNTS.length} posted\n`
+        if (silent.length) text += `${i('Silent: ' + silent.join(', '))}\n`
+        text += '\n'
+        if (highlights.length) text += highlights.join('\n') + '\n'
+        text += `${DIV}\n`
+
+        text += `🔥 ${b('Viral')} ${i('(top by views)')}\n\n`
+        text += viral.length ? viral.map((p, idx) => fmtTweet(p, idx)).join('\n\n') + '\n' : `${i('No data yet.')}\n`
+        text += `${DIV}\n`
+
+        text += `⭐ ${b('Stand Out')} ${i('(highest engagement rate)')}\n\n`
+        text += standOut.length ? standOut.map((p, idx) => fmtTweet(p, idx)).join('\n\n') + '\n' : `${i('Not enough data.')}\n`
+        text += `${DIV}\n`
+
+        text += `📉 ${b('Low Engagement')} ${i("(what didn't land — learn from it)")}\n\n`
+        text += lowEng.length ? lowEng.map((p, idx) => fmtTweet(p, idx)).join('\n\n') + '\n' : `${i('No low-engagement posts with enough reach.')}\n`
+        text += `${DIV}\n`
+
+        text += `👉 ${link('Open Dashboard', DASH_URL)}`
+        return text
       }
-      text += `${DIV}\n`
 
-      // Section 2: Viral
-      text += `🔥 *Viral* _(top by views)_\n\n`
-      if (viral.length) {
-        text += viral.map((p, i) => fmtTweet(p, i)).join('\n\n') + '\n'
-      } else {
-        text += '_No data yet._\n'
+      if (slackWebhook) {
+        const slackResp = await fetch(slackWebhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: buildDigest('slack') }),
+        })
+        if (!slackResp.ok) {
+          console.error('Slack error:', slackResp.status, await slackResp.text().catch(() => ''))
+        } else {
+          console.log('Slack digest sent')
+        }
       }
-      text += `${DIV}\n`
 
-      // Section 3: Stand Out
-      text += `⭐ *Stand Out* _(highest engagement rate)_\n\n`
-      if (standOut.length) {
-        text += standOut.map((p, i) => fmtTweet(p, i)).join('\n\n') + '\n'
-      } else {
-        text += '_Not enough data._\n'
-      }
-      text += `${DIV}\n`
+      if (discordWebhook) {
+        // Discord has 2000 char limit — split into chunks if needed
+        const fullText = buildDigest('discord')
+        const chunks = []
+        let remaining = fullText
+        while (remaining.length > 1900) {
+          const splitAt = remaining.lastIndexOf('\n', 1900)
+          chunks.push(remaining.slice(0, splitAt > 0 ? splitAt : 1900))
+          remaining = remaining.slice(splitAt > 0 ? splitAt + 1 : 1900)
+        }
+        chunks.push(remaining)
 
-      // Section 4: Low Engagement
-      text += `📉 *Low Engagement* _(what didn't land — learn from it)_\n\n`
-      if (lowEng.length) {
-        text += lowEng.map((p, i) => fmtTweet(p, i)).join('\n\n') + '\n'
-      } else {
-        text += '_No low-engagement posts with enough reach._\n'
-      }
-      text += `${DIV}\n`
-
-      text += `👉 <https://rise-dashboard-bice.vercel.app|Open Dashboard>`
-
-      const slackResp = await fetch(slackWebhook, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-      })
-
-      if (!slackResp.ok) {
-        const errText = await slackResp.text()
-        console.error('Slack error:', slackResp.status, errText)
-      } else {
-        console.log('Slack digest sent')
+        for (const chunk of chunks) {
+          await fetch(discordWebhook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: chunk }),
+          })
+        }
+        console.log('Discord digest sent')
       }
     } catch (err) {
-      console.error('Slack notify failed:', err.message)
+      console.error('Digest notify failed:', err.message)
     }
   }
 

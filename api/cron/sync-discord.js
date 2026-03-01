@@ -248,19 +248,17 @@ async function analyzeGuild(guildId, guildName, token, db) {
   return snapshot
 }
 
-async function sendSlackDigest(snapshots) {
-  const webhook = process.env.SLACK_WEBHOOK_URL
-  if (!webhook) return
-
-  const lines = ['📊 *RISE Discord Daily Report*', '━━━━━━━━━━━━━━━━━━━━', '']
+function buildDigestLines(snapshots, format = 'slack') {
+  const bold = (t) => format === 'discord' ? `**${t}**` : `*${t}*`
+  const lines = [`📊 ${bold('RISE Discord Daily Report')}`, '━━━━━━━━━━━━━━━━━━━━', '']
 
   for (const s of snapshots) {
     const net = s.netChange > 0 ? `+${s.netChange}` : s.netChange < 0 ? `${s.netChange}` : '±0'
     const netIcon = s.netChange > 0 ? '📈' : s.netChange < 0 ? '📉' : '➡️'
-    lines.push(`💬 *${s.guildName} Discord*`)
-    lines.push(`Members: *${s.memberCount.toLocaleString()}* ${s.previousMemberCount != null ? `${netIcon} ${net} vs yesterday` : ''}`)
+    lines.push(`💬 ${bold(s.guildName + ' Discord')}`)
+    lines.push(`Members: ${bold(s.memberCount.toLocaleString())} ${s.previousMemberCount != null ? `${netIcon} ${net} vs yesterday` : ''}`)
     lines.push(`Online: ~${s.onlineCount.toLocaleString()}`)
-    lines.push(`Messages (24h): *${s.messageCount24h.toLocaleString()}*`)
+    lines.push(`Messages (24h): ${bold(s.messageCount24h.toLocaleString())}`)
     if (s.activeChannels[0]) {
       lines.push(`Most Active: #${s.activeChannels[0].name} (${s.activeChannels[0].count} msgs)`)
     }
@@ -271,26 +269,51 @@ async function sendSlackDigest(snapshots) {
       lines.push(`🔥 Hot topics: ${s.topicsKeywords.slice(0, 5).map(k => k.keyword).join(', ')}`)
     }
     if (s.pendingTickets?.length > 0) {
-      lines.push(`⚠️ *${s.pendingTickets.length} ticket${s.pendingTickets.length > 1 ? 's' : ''} need attention*`)
+      lines.push(`⚠️ ${bold(s.pendingTickets.length + ' ticket' + (s.pendingTickets.length > 1 ? 's' : '') + ' need attention')}`)
       for (const t of s.pendingTickets.slice(0, 3)) {
         const replyFlag = t.hasStaffReply ? '✅' : '🔴'
-        lines.push(`  • ${replyFlag} #${t.channelName} — ${t.authorName}: "${(t.preview || '').slice(0, 60)}…" (idle ${t.idleHours}h) ${t.url ? `<${t.url}|view>` : ''}`)
+        const link = t.url
+          ? (format === 'discord' ? ` [view](${t.url})` : ` <${t.url}|view>`)
+          : ''
+        lines.push(`  • ${replyFlag} #${t.channelName} — ${t.authorName}: "${(t.preview || '').slice(0, 60)}…" (idle ${t.idleHours}h)${link}`)
       }
     }
     lines.push('')
   }
 
   const dashUrl = process.env.DASHBOARD_URL || 'https://rise-dashboard-bice.vercel.app'
-  lines.push(`<${dashUrl}|🔗 Open Dashboard>`)
+  lines.push(format === 'discord'
+    ? `[🔗 Open Dashboard](${dashUrl})`
+    : `<${dashUrl}|🔗 Open Dashboard>`)
 
+  return lines.join('\n')
+}
+
+async function sendSlackDigest(snapshots) {
+  const webhook = process.env.SLACK_WEBHOOK_URL
+  if (!webhook) return
   try {
     await fetch(webhook, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: lines.join('\n') }),
+      body: JSON.stringify({ text: buildDigestLines(snapshots, 'slack') }),
     })
   } catch {
     // Slack digest failure is non-fatal
+  }
+}
+
+async function sendDiscordDigest(snapshots) {
+  const webhook = process.env.DISCORD_DIGEST_WEBHOOK_URL
+  if (!webhook) return
+  try {
+    await fetch(webhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: buildDigestLines(snapshots, 'discord') }),
+    })
+  } catch {
+    // Discord digest failure is non-fatal
   }
 }
 
@@ -337,7 +360,10 @@ export default async function handler(req, res) {
   }
 
   if (successSnapshots.length > 0) {
-    await sendSlackDigest(successSnapshots)
+    await Promise.all([
+      sendSlackDigest(successSnapshots),
+      sendDiscordDigest(successSnapshots),
+    ])
   }
 
   return res.json({ ok: true, results, syncedAt: new Date().toISOString() })
