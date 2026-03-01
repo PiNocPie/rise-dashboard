@@ -212,6 +212,254 @@ function PostingHeatmap({ posts }) {
   )
 }
 
+// ── Week Insights panel ──────────────────────────────────────────────────────
+function WeekInsights({ posts }) {
+  const stats = useMemo(() => {
+    const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000
+    const recent = posts.filter(p => {
+      const d = new Date(p.postDate)
+      return !isNaN(d) && d.getTime() >= cutoff && p.views > 0
+    })
+
+    if (recent.length < 3) return null
+
+    // Per-day stats (0=Sun…6=Sat)
+    const days = Array.from({ length: 7 }, (_, i) => ({
+      dow: i,
+      posts: [],
+      erSum: 0,
+      viewSum: 0,
+      cats: {},
+      comps: {},
+    }))
+    recent.forEach(p => {
+      const dow = new Date(p.postDate).getUTCDay()
+      const d = days[dow]
+      d.posts.push(p)
+      d.erSum += er(p)
+      d.viewSum += p.views
+      d.cats[p.category] = (d.cats[p.category] || 0) + 1
+      d.comps[p.competitor] = (d.comps[p.competitor] || 0) + 1
+    })
+
+    const ranked = days
+      .filter(d => d.posts.length >= 1)
+      .map(d => ({
+        dow:     d.dow,
+        name:    DAYS_FULL[d.dow],
+        short:   DAYS_SHORT[d.dow],
+        count:   d.posts.length,
+        avgER:   d.erSum / d.posts.length,
+        avgViews: d.viewSum / d.posts.length,
+        topCat:  Object.entries(d.cats).sort((a,b) => b[1]-a[1])[0]?.[0] || '—',
+        topComp: Object.entries(d.comps).sort((a,b) => b[1]-a[1])[0]?.[0] || '—',
+      }))
+      .sort((a, b) => b.avgER - a.avgER)
+
+    if (ranked.length < 1) return null
+
+    // Best peak hour window across all days
+    const hourBuckets = {}
+    recent.forEach(p => {
+      const h = new Date(p.postDate).getUTCHours()
+      if (!hourBuckets[h]) hourBuckets[h] = { erSum: 0, count: 0 }
+      hourBuckets[h].erSum += er(p)
+      hourBuckets[h].count++
+    })
+    const bestHourEntry = Object.entries(hourBuckets)
+      .filter(([, v]) => v.count >= 2)
+      .sort((a, b) => (b[1].erSum/b[1].count) - (a[1].erSum/a[1].count))[0]
+    const bestHour = bestHourEntry
+      ? { hour: Number(bestHourEntry[0]), avgER: bestHourEntry[1].erSum / bestHourEntry[1].count, count: bestHourEntry[1].count }
+      : null
+
+    // Top post last week
+    const topPost = [...recent].sort((a, b) => er(b) - er(a))[0]
+
+    // Weekend vs weekday
+    const weekdayPosts = recent.filter(p => {
+      const d = new Date(p.postDate).getUTCDay()
+      return d >= 1 && d <= 5
+    })
+    const weekendPosts = recent.filter(p => {
+      const d = new Date(p.postDate).getUTCDay()
+      return d === 0 || d === 6
+    })
+    const weekdayER = weekdayPosts.length
+      ? weekdayPosts.reduce((s, p) => s + er(p), 0) / weekdayPosts.length
+      : 0
+    const weekendER = weekendPosts.length
+      ? weekendPosts.reduce((s, p) => s + er(p), 0) / weekendPosts.length
+      : 0
+
+    return { ranked, bestHour, topPost, weekdayER, weekendER, weekdayCount: weekdayPosts.length, weekendCount: weekendPosts.length, total: recent.length }
+  }, [posts])
+
+  if (!stats) {
+    return (
+      <div className="rounded-lg p-5 text-xs text-center" style={{ background: S.surface, border: `1px solid ${S.border}`, color: S.muted }}>
+        Not enough data yet — need at least 3 posts with views in the last 7 days.
+      </div>
+    )
+  }
+
+  const { ranked, bestHour, topPost, weekdayER, weekendER, weekdayCount, weekendCount, total } = stats
+  const best   = ranked[0]
+  const worst  = ranked[ranked.length - 1]
+  const weekdayBetter = weekdayER > weekendER
+
+  // Build insight bullets
+  const bullets = []
+
+  // Bullet 1 — best day
+  if (best) {
+    bullets.push({
+      icon: '★',
+      color: S.accent,
+      text: <>
+        <strong style={{ color: S.text }}>{best.name}</strong> was the strongest day last week —{' '}
+        <span style={{ color: S.accent }}>{best.avgER.toFixed(2)}% avg ER</span> across {best.count} post{best.count !== 1 ? 's' : ''}.
+        {best.topCat !== '—' && <> Most common content type: <em style={{ color: S.sub }}>{best.topCat}</em>.</>}
+      </>,
+    })
+  }
+
+  // Bullet 2 — peak hour
+  if (bestHour) {
+    bullets.push({
+      icon: '◷',
+      color: '#f59e0b',
+      text: <>
+        Peak hour window: <strong style={{ color: S.text }}>{String(bestHour.hour).padStart(2,'0')}:00–{String(bestHour.hour+1).padStart(2,'0')}:00 UTC</strong>{' '}
+        averaged <span style={{ color: S.accent }}>{bestHour.avgER.toFixed(2)}% ER</span> ({bestHour.count} posts) —
+        this aligns with <em style={{ color: S.sub }}>
+          {bestHour.hour >= 13 && bestHour.hour <= 16 ? 'US morning + EU afternoon overlap' :
+           bestHour.hour >= 8  && bestHour.hour <= 12 ? 'EU morning peak' :
+           bestHour.hour >= 0  && bestHour.hour <= 4  ? 'Asia prime time' :
+           'US afternoon / evening'}
+        </em>.
+      </>,
+    })
+  }
+
+  // Bullet 3 — weekday vs weekend
+  if (weekdayCount > 0 && weekendCount > 0) {
+    bullets.push({
+      icon: weekdayBetter ? '↑' : '↓',
+      color: weekdayBetter ? S.accent : '#ef4444',
+      text: <>
+        Weekdays averaged <span style={{ color: weekdayBetter ? S.accent : S.sub }}>{weekdayER.toFixed(2)}% ER</span> vs{' '}
+        <span style={{ color: weekdayBetter ? S.sub : S.accent }}>{weekendER.toFixed(2)}% ER</span> on weekends.{' '}
+        {weekdayBetter
+          ? 'Stick to Mon–Fri for main announcements.'
+          : 'Weekend posts are outperforming — good for organic/meme content.'}
+      </>,
+    })
+  } else if (weekdayCount === 0 && weekendCount > 0) {
+    bullets.push({
+      icon: '!',
+      color: '#f59e0b',
+      text: <>No weekday posts last week — missing the highest-traffic window (Mon–Fri 9–17 UTC).</>,
+    })
+  }
+
+  // Bullet 4 — worst day
+  if (worst && worst.dow !== best?.dow && worst.avgER < best?.avgER * 0.6) {
+    bullets.push({
+      icon: '↓',
+      color: '#ef4444',
+      text: <>
+        <strong style={{ color: S.text }}>{worst.name}</strong> underperformed at{' '}
+        <span style={{ color: '#ef4444' }}>{worst.avgER.toFixed(2)}% ER</span> ({worst.count} post{worst.count !== 1 ? 's' : ''}).{' '}
+        Consider testing different content types or shifting timing.
+      </>,
+    })
+  }
+
+  // Bullet 5 — top post
+  if (topPost) {
+    const topER = er(topPost)
+    bullets.push({
+      icon: '⚡',
+      color: S.sub,
+      text: <>
+        Best post last week: <strong style={{ color: S.text }}>{topPost.competitor}</strong> on{' '}
+        {DAYS_FULL[new Date(topPost.postDate).getUTCDay()]} —{' '}
+        <span style={{ color: S.accent }}>{topER.toFixed(2)}% ER</span>,{' '}
+        {topPost.views.toLocaleString()} views
+        {topPost.category ? <>, category: <em style={{ color: S.sub }}>{topPost.category}</em></> : ''}.
+      </>,
+    })
+  }
+
+  return (
+    <div className="rounded-lg overflow-hidden" style={{ background: S.surface, border: `1px solid ${S.border}` }}>
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: `1px solid ${S.border}` }}>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold" style={{ color: S.text }}>Last 7 Days — Why These Days?</span>
+          <span className="text-xs px-2 py-0.5 rounded" style={{ background: S.inner, color: S.muted, border: `1px solid ${S.border}` }}>
+            {total} posts with data
+          </span>
+        </div>
+        <span className="text-xs" style={{ color: S.muted }}>auto-generated from your tracked posts</span>
+      </div>
+
+      {/* Day ranking bar */}
+      <div className="px-5 py-4" style={{ borderBottom: `1px solid ${S.border}` }}>
+        <div className="text-xs uppercase tracking-wider mb-3" style={{ color: S.muted }}>Day ranking by avg ER</div>
+        <div className="flex flex-col gap-2">
+          {ranked.map((d, i) => {
+            const maxER = ranked[0].avgER
+            const pct   = maxER > 0 ? (d.avgER / maxER) * 100 : 0
+            const isTop = i === 0
+            return (
+              <div key={d.dow} className="flex items-center gap-3">
+                <span className="text-xs w-6 text-right shrink-0" style={{ color: isTop ? S.accent : S.muted }}>
+                  {i + 1}
+                </span>
+                <span className="text-xs font-medium w-10 shrink-0" style={{ color: isTop ? S.text : S.sub }}>
+                  {d.short}
+                </span>
+                <div className="flex-1 rounded-full overflow-hidden" style={{ height: 6, background: '#2a2a2a' }}>
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${pct}%`,
+                      background: isTop ? S.accent : i === 1 ? 'rgba(0,230,118,0.5)' : '#3a3a3a',
+                      transition: 'width 0.4s ease',
+                    }}
+                  />
+                </div>
+                <span className="text-xs w-14 text-right shrink-0" style={{ color: isTop ? S.accent : S.sub }}>
+                  {d.avgER.toFixed(2)}%
+                </span>
+                <span className="text-xs w-16 shrink-0" style={{ color: S.muted }}>
+                  {d.count} post{d.count !== 1 ? 's' : ''}
+                </span>
+                <span className="text-xs shrink-0" style={{ color: S.muted }}>
+                  {d.topCat !== '—' ? d.topCat : ''}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Insight bullets */}
+      <div className="px-5 py-4 flex flex-col gap-3">
+        <div className="text-xs uppercase tracking-wider mb-1" style={{ color: S.muted }}>Insights</div>
+        {bullets.map((b, i) => (
+          <div key={i} className="flex items-start gap-3">
+            <span className="text-xs mt-0.5 shrink-0 w-4 text-center font-bold" style={{ color: b.color }}>{b.icon}</span>
+            <p className="text-xs leading-relaxed" style={{ color: S.sub }}>{b.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ── Calendar component ──────────────────────────────────────────────────────
 export default function CalendarView({ posts, competitors }) {
   const today = new Date()
@@ -317,7 +565,10 @@ export default function CalendarView({ posts, competitors }) {
       </div>
 
       {view === 'heatmap' ? (
-        <PostingHeatmap posts={filteredPosts} />
+        <div className="flex flex-col gap-4">
+          <PostingHeatmap posts={filteredPosts} />
+          <WeekInsights posts={filteredPosts} />
+        </div>
       ) : (
         <>
           {/* Calendar card */}

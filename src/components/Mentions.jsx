@@ -352,12 +352,13 @@ export default function Mentions({ dateFrom, dateTo }) {
               <div className="text-xs mt-1" style={{ color: S.sub }}>10k+ followers</div>
             </Card>
             <Card>
-              <div className="text-xs uppercase tracking-wider mb-2" style={{ color: S.muted }}>Sentiment</div>
-              <div className="text-3xl font-bold" style={{ color: sentRatio > 60 ? S.accent : sentRatio > 40 ? '#f59e0b' : '#ef4444' }}>
+              <div className="text-xs uppercase tracking-wider mb-2" style={{ color: S.muted }}>Positive Sentiment</div>
+              <div className="text-3xl font-bold" style={{ color: S.accent }}>
                 {sentRatio}%
               </div>
-              <div className="text-xs mt-1" style={{ color: S.sub }}>
-                positive · {negCount} neg flag{negCount !== 1 ? 's' : ''}
+              <div className="text-xs mt-1" style={{ color: sentRatio < 40 ? '#ef4444' : sentRatio < 60 ? '#f59e0b' : S.sub }}>
+                {sentRatio < 40 ? '⚠ low — worth monitoring' : sentRatio < 60 ? 'neutral range' : 'healthy'}
+                {negCount > 0 ? ` · ${negCount} negative` : ''}
               </div>
             </Card>
           </div>
