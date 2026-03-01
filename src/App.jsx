@@ -30,6 +30,7 @@ const NAV = [
       { id: 'updates',    label: 'Feed' },
       { id: 'comparison', label: 'Charts' },
       { id: 'themes',     label: 'Themes' },
+      { id: 'ecosystem',  label: 'Ecosystem' },
     ],
   },
   {
@@ -38,7 +39,6 @@ const NAV = [
     tabs: [
       { id: 'own',      label: 'Performance' },
       { id: 'mentions', label: 'Mentions' },
-      { id: 'ecosystem', label: 'Ecosystem' },
     ],
   },
   {

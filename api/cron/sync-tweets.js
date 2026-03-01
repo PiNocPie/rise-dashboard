@@ -62,7 +62,7 @@ async function syncMentions(db, BEARER, startTime, endTime) {
     try {
       const params = new URLSearchParams({
         query: target.query,
-        'tweet.fields': 'public_metrics,created_at,text,author_id',
+        'tweet.fields': 'public_metrics,created_at,text,author_id,referenced_tweets',
         'expansions': 'author_id',
         'user.fields': 'name,username,public_metrics',
         max_results: '100',
@@ -92,6 +92,7 @@ async function syncMentions(db, BEARER, startTime, endTime) {
           authorUsername: author.username || '',
           authorName: author.name || '',
           authorFollowers: author.public_metrics?.followers_count || 0,
+          isReply: !!(tweet.referenced_tweets?.some(r => r.type === 'replied_to')),
           text: tweet.text,
           views: m.impression_count || 0,
           likes: m.like_count || 0,

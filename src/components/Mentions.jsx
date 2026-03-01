@@ -80,6 +80,8 @@ function MentionCard({ mention }) {
   const accountColor = mention.mentionedAccount === 'RISE' ? S.accent : '#6366f1'
   const followers   = mention.authorFollowers || 0
   const tier        = kolTier(followers)
+  // isReply: use API field if available, fall back to text heuristic
+  const isReply = mention.isReply ?? /^@\w/.test((mention.text || '').trimStart())
 
   return (
     <div
@@ -130,6 +132,18 @@ function MentionCard({ mention }) {
             style={{ background: `${accountColor}14`, color: accountColor }}
           >
             {mention.mentionedAccount}
+          </span>
+
+          {/* Reply vs Tweet */}
+          <span
+            className="text-xs px-2 py-0.5 rounded font-medium"
+            style={{
+              background: isReply ? 'rgba(99,102,241,0.1)' : 'rgba(255,255,255,0.05)',
+              color: isReply ? '#818cf8' : S.muted,
+              border: `1px solid ${isReply ? 'rgba(99,102,241,0.2)' : S.border}`,
+            }}
+          >
+            {isReply ? '↩ reply' : '✦ tweet'}
           </span>
 
           {/* Sentiment */}
