@@ -200,11 +200,15 @@ function TopAccountsPanel({ mentions }) {
     mentions.forEach(m => {
       const u = m.authorUsername
       if (!u) return
-      if (!map[u]) map[u] = { username: u, name: m.authorName, followers: 0, count: 0, erSum: 0, posCount: 0 }
+      if (!map[u]) map[u] = { username: u, name: m.authorName, followers: 0, count: 0, erSum: 0, posCount: 0, bestMention: null }
       map[u].followers = Math.max(map[u].followers, m.authorFollowers || 0)
       map[u].count++
       map[u].erSum += er(m)
       if (sentiment(m.text) === 'positive') map[u].posCount++
+      // Track best mention by views
+      if (!map[u].bestMention || (m.views || 0) > (map[u].bestMention.views || 0)) {
+        map[u].bestMention = m
+      }
     })
     return Object.values(map)
       .filter(a => a.followers >= 1000)
@@ -227,12 +231,13 @@ function TopAccountsPanel({ mentions }) {
           return (
             <div
               key={a.username}
-              className="flex items-center gap-3 py-2 px-3 rounded"
+              className="py-2 px-3 rounded"
               style={{ background: S.inner, border: `1px solid ${S.border}` }}
             >
-              <span className="text-xs w-4 flex-shrink-0" style={{ color: S.muted }}>{i + 1}</span>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
+              {/* Row 1: account info + engage */}
+              <div className="flex items-center gap-3">
+                <span className="text-xs w-4 flex-shrink-0" style={{ color: S.muted }}>{i + 1}</span>
+                <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
                   <a
                     href={`https://x.com/${a.username}`}
                     target="_blank"
@@ -252,20 +257,43 @@ function TopAccountsPanel({ mentions }) {
                   )}
                   <span className="text-xs" style={{ color: S.muted }}>{fmtNum(a.followers)} followers</span>
                 </div>
+                <div className="flex items-center gap-3 text-xs shrink-0">
+                  <span style={{ color: S.sub }}>{a.count} mention{a.count !== 1 ? 's' : ''}</span>
+                  <span style={{ color: sentimentPct > 50 ? S.accent : S.muted }}>{sentimentPct}% pos</span>
+                  <a
+                    href={a.bestMention?.tweetId
+                      ? `https://x.com/${a.username}/status/${a.bestMention.tweetId}`
+                      : `https://x.com/${a.username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-2.5 py-1 rounded text-xs font-medium"
+                    style={{ background: 'rgba(0,230,118,0.1)', color: S.accent, border: `1px solid rgba(0,230,118,0.25)` }}
+                  >
+                    Engage ↗
+                  </a>
+                </div>
               </div>
-              <div className="flex items-center gap-3 text-xs shrink-0">
-                <span style={{ color: S.sub }}>{a.count} mention{a.count !== 1 ? 's' : ''}</span>
-                <span style={{ color: sentimentPct > 50 ? S.accent : S.muted }}>{sentimentPct}% pos</span>
-                <a
-                  href={`https://x.com/${a.username}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-2.5 py-1 rounded text-xs font-medium"
-                  style={{ background: 'rgba(0,230,118,0.1)', color: S.accent, border: `1px solid rgba(0,230,118,0.25)` }}
-                >
-                  Engage ↗
-                </a>
-              </div>
+              {/* Row 2: best tweet snippet */}
+              {a.bestMention?.text && (
+                <div className="mt-1.5 ml-7">
+                  <a
+                    href={a.bestMention.tweetId
+                      ? `https://x.com/${a.username}/status/${a.bestMention.tweetId}`
+                      : `https://x.com/${a.username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs hover:underline"
+                    style={{ color: S.sub, display: 'block', lineHeight: 1.5 }}
+                  >
+                    "{a.bestMention.text.slice(0, 120)}{a.bestMention.text.length > 120 ? '…' : ''}"
+                    {a.bestMention.views > 0 && (
+                      <span style={{ color: S.muted, marginLeft: 6 }}>
+                        👁 {fmtNum(a.bestMention.views)}
+                      </span>
+                    )}
+                  </a>
+                </div>
+              )}
             </div>
           )
         })}
