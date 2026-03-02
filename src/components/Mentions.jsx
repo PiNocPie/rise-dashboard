@@ -309,6 +309,7 @@ export default function Mentions({ dateFrom, dateTo }) {
   const [loading, setLoading]           = useState(true)
   const [filterAccount, setFilterAccount] = useState('both')
   const [minFollowers, setMinFollowers] = useState('all')
+  const [filterType, setFilterType]     = useState('all')         // 'all'|'reply'|'tweet'
   const [sortBy, setSortBy]             = useState('followers')  // 'date'|'views'|'er'|'followers'
 
   useEffect(() => {
@@ -326,6 +327,9 @@ export default function Mentions({ dateFrom, dateTo }) {
     .filter(m => {
       if (filterAccount !== 'both' && m.mentionedAccount !== filterAccount) return false
       if ((m.authorFollowers || 0) < minF) return false
+      const isReply = m.isReply ?? /^@\w/.test((m.text || '').trimStart())
+      if (filterType === 'reply' && !isReply) return false
+      if (filterType === 'tweet' && isReply) return false
       const t = new Date(m.createdAt).getTime()
       if (dateFrom && t < new Date(dateFrom).getTime()) return false
       if (dateTo) {
@@ -340,7 +344,7 @@ export default function Mentions({ dateFrom, dateTo }) {
       if (sortBy === 'followers') return (b.authorFollowers || 0) - (a.authorFollowers || 0)
       return new Date(b.createdAt) - new Date(a.createdAt)
     }),
-  [mentions, filterAccount, minF, sortBy, dateFrom, dateTo])
+  [mentions, filterAccount, minF, filterType, sortBy, dateFrom, dateTo])
 
   // Stats
   const riseCount  = mentions.filter(m => m.mentionedAccount === 'RISE').length
@@ -441,6 +445,27 @@ export default function Mentions({ dateFrom, dateTo }) {
                   style={
                     minFollowers === k
                       ? { background: 'rgba(245,158,11,0.12)', color: '#f59e0b', border: `1px solid rgba(245,158,11,0.3)` }
+                      : { color: S.muted, border: `1px solid ${S.border}` }
+                  }
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
+
+            <div className="h-4 w-px" style={{ background: S.border }} />
+
+            {/* Type filter */}
+            <div className="flex items-center gap-1">
+              <span className="text-xs mr-1" style={{ color: S.muted }}>Type:</span>
+              {[['all', 'All'], ['tweet', '✦ Tweet'], ['reply', '↩ Reply']].map(([k, l]) => (
+                <button
+                  key={k}
+                  onClick={() => setFilterType(k)}
+                  className="px-3 py-1.5 text-xs font-medium rounded transition-all"
+                  style={
+                    filterType === k
+                      ? { background: 'rgba(99,102,241,0.12)', color: '#a78bfa', border: `1px solid rgba(99,102,241,0.3)` }
                       : { color: S.muted, border: `1px solid ${S.border}` }
                   }
                 >
