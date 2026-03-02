@@ -351,8 +351,10 @@ export default function Mentions({ dateFrom, dateTo }) {
   const risexCount = mentions.filter(m => m.mentionedAccount === 'RISEx').length
   const kolCount   = mentions.filter(m => (m.authorFollowers || 0) >= 10_000).length
   const posCount   = filtered.filter(m => sentiment(m.text) === 'positive').length
-  const negCount   = filtered.filter(m => sentiment(m.text) === 'negative').length
+  const negMentions = filtered.filter(m => sentiment(m.text) === 'negative')
+  const negCount   = negMentions.length
   const sentRatio  = filtered.length ? Math.round((posCount / filtered.length) * 100) : 0
+  const [showNeg, setShowNeg] = useState(false)
 
   if (loading) {
     return (
@@ -397,15 +399,52 @@ export default function Mentions({ dateFrom, dateTo }) {
               <div className="text-3xl font-bold" style={{ color: '#f59e0b' }}>{kolCount}</div>
               <div className="text-xs mt-1" style={{ color: S.sub }}>10k+ followers</div>
             </Card>
-            <Card>
+            <Card style={{ gridColumn: negCount > 0 ? 'span 1' : undefined }}>
               <div className="text-xs uppercase tracking-wider mb-2" style={{ color: S.muted }}>Positive Sentiment</div>
-              <div className="text-3xl font-bold" style={{ color: S.accent }}>
-                {sentRatio}%
+              <div className="text-3xl font-bold" style={{ color: S.accent }}>{sentRatio}%</div>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-xs" style={{ color: sentRatio < 40 ? '#ef4444' : sentRatio < 60 ? '#f59e0b' : S.sub }}>
+                  {sentRatio < 40 ? '⚠ low — worth monitoring' : sentRatio < 60 ? 'neutral range' : 'healthy'}
+                </span>
+                {negCount > 0 && (
+                  <button
+                    onClick={() => setShowNeg(v => !v)}
+                    className="text-xs font-medium px-1.5 py-0.5 rounded"
+                    style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)' }}
+                  >
+                    {negCount} negative {showNeg ? '▲' : '▼'}
+                  </button>
+                )}
               </div>
-              <div className="text-xs mt-1" style={{ color: sentRatio < 40 ? '#ef4444' : sentRatio < 60 ? '#f59e0b' : S.sub }}>
-                {sentRatio < 40 ? '⚠ low — worth monitoring' : sentRatio < 60 ? 'neutral range' : 'healthy'}
-                {negCount > 0 ? ` · ${negCount} negative` : ''}
-              </div>
+              {showNeg && negCount > 0 && (
+                <div className="mt-3 flex flex-col gap-2">
+                  {negMentions.slice(0, 5).map(m => {
+                    const tweetUrl = m.tweetId && m.authorUsername
+                      ? `https://x.com/${m.authorUsername}/status/${m.tweetId}`
+                      : m.authorUsername ? `https://x.com/${m.authorUsername}` : null
+                    return (
+                      <div key={m._docId} className="rounded p-2" style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)' }}>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className="text-xs font-semibold" style={{ color: '#ef4444' }}>@{m.authorUsername}</span>
+                          {m.authorFollowers > 0 && (
+                            <span className="text-xs" style={{ color: S.muted }}>{fmtNum(m.authorFollowers)} followers</span>
+                          )}
+                        </div>
+                        <p className="text-xs leading-relaxed" style={{ color: S.sub }}>{(m.text || '').slice(0, 160)}</p>
+                        {tweetUrl && (
+                          <a href={tweetUrl} target="_blank" rel="noopener noreferrer"
+                            className="text-xs mt-1 inline-block hover:underline" style={{ color: S.muted }}>
+                            View tweet ↗
+                          </a>
+                        )}
+                      </div>
+                    )
+                  })}
+                  {negCount > 5 && (
+                    <div className="text-xs text-center" style={{ color: S.muted }}>+{negCount - 5} more — use Type filter to see all</div>
+                  )}
+                </div>
+              )}
             </Card>
           </div>
 
