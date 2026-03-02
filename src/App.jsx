@@ -59,10 +59,18 @@ NAV.forEach(g => {
   g.tabs.forEach(t => { TAB_TO_GROUP[t.id] = g.id })
 })
 
+// All valid tab IDs for hash routing
+const ALL_TABS = new Set(Object.keys(TAB_TO_GROUP))
+
+function getHashTab() {
+  const hash = window.location.hash.replace('#', '').toLowerCase()
+  return ALL_TABS.has(hash) ? hash : 'dashboard'
+}
+
 export default function App() {
   const [platform, setPlatform] = useState('twitter')   // 'twitter' | 'discord'
   const [posts, setPosts] = useState([])
-  const [activeTab, setActiveTab] = useState('dashboard')
+  const [activeTab, setActiveTab] = useState(getHashTab)
   const activeGroup = TAB_TO_GROUP[activeTab] || 'dashboard'
   const [importMsg, setImportMsg] = useState(null)
   const [dateFrom, setDateFrom] = useState('')
@@ -79,6 +87,19 @@ export default function App() {
   const importRef = useRef(null)
 
   const clearDates = () => { setDateFrom(''); setDateTo('') }
+
+  // Keep URL hash in sync with active tab
+  const navigateTo = (tab) => {
+    setActiveTab(tab)
+    window.location.hash = tab
+  }
+
+  // Handle browser back/forward
+  useEffect(() => {
+    const handler = () => setActiveTab(getHashTab())
+    window.addEventListener('hashchange', handler)
+    return () => window.removeEventListener('hashchange', handler)
+  }, [])
 
   const competitors = RISE_COMPETITORS
 
@@ -107,12 +128,11 @@ export default function App() {
   const handleGroupClick = (groupId) => {
     const group = NAV.find(g => g.id === groupId)
     if (!group) return
-    // If direct group (no sub-tabs), set activeTab to the group id itself
-    setActiveTab(group.tabs.length > 0 ? group.tabs[0].id : group.id)
+    navigateTo(group.tabs.length > 0 ? group.tabs[0].id : group.id)
   }
 
   const handleTabClick = (tabId) => {
-    setActiveTab(tabId)
+    navigateTo(tabId)
   }
 
   const handleLogin = () => {
@@ -472,13 +492,17 @@ export default function App() {
 
       {platform === 'discord' ? (
         <main className="max-w-screen-xl mx-auto px-6 py-6">
-          <DiscordDashboard
-            isLoggedIn={isLoggedIn}
-            onRefresh={handleDiscordRefresh}
-            refreshing={discordRefreshing}
-            dateFrom={dateFrom}
-            dateTo={dateTo}
-          />
+          <div className="flex flex-col items-center justify-center" style={{ minHeight: 480 }}>
+            <div style={{ fontSize: 56, marginBottom: 20 }}>🚧</div>
+            <div className="text-lg font-semibold mb-2" style={{ color: '#e8e8e8' }}>Discord Dashboard — Coming Soon</div>
+            <div className="text-sm text-center max-w-md" style={{ color: '#888', lineHeight: 1.7 }}>
+              We're building the Discord community intelligence panel.<br />
+              Member growth, active channels, hot topics, and support tickets — all in one place.
+            </div>
+            <div className="mt-8 px-4 py-2 rounded text-xs font-medium" style={{ background: 'rgba(99,102,241,0.1)', color: '#a78bfa', border: '1px solid rgba(99,102,241,0.25)' }}>
+              Under Construction
+            </div>
+          </div>
         </main>
       ) : loading ? (
         <div className="flex items-center justify-center h-64">
