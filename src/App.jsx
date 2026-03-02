@@ -14,6 +14,7 @@ import OwnPerformance from './components/OwnPerformance'
 import Partnerships from './components/Partnerships'
 import Mentions from './components/Mentions'
 import DiscordDashboard from './components/DiscordDashboard'
+import DateRangePicker from './components/DateRangePicker'
 
 // Two-level navigation: groups + sub-tabs
 const NAV = [
@@ -274,29 +275,13 @@ export default function App() {
               </div>
 
               {/* Date range */}
-              <div
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded"
-                style={{ background: '#1e1e1e', border: `1px solid ${D.border}` }}
-              >
-                <input
-                  type="datetime-local"
-                  value={dateFrom}
-                  onChange={e => setDateFrom(e.target.value)}
-                  className="text-xs"
-                  style={{ background: 'transparent', border: 'none', color: dateFrom ? D.text : D.muted, outline: 'none', cursor: 'pointer', width: 135 }}
-                />
-                <span className="text-xs" style={{ color: D.muted }}>–</span>
-                <input
-                  type="datetime-local"
-                  value={dateTo}
-                  onChange={e => setDateTo(e.target.value)}
-                  className="text-xs"
-                  style={{ background: 'transparent', border: 'none', color: dateTo ? D.text : D.muted, outline: 'none', cursor: 'pointer', width: 135 }}
-                />
-                {(dateFrom || dateTo) && (
-                  <button onClick={clearDates} className="text-xs ml-1" style={{ color: D.muted }}>✕</button>
-                )}
-              </div>
+              <DateRangePicker
+                dateFrom={dateFrom}
+                dateTo={dateTo}
+                onFromChange={setDateFrom}
+                onToChange={setDateTo}
+                onClear={clearDates}
+              />
 
               {/* Twitter admin controls */}
               {platform === 'twitter' && isLoggedIn && (
