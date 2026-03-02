@@ -519,7 +519,7 @@ export default function App() {
           {activeTab === 'calendar'   && <CalendarView posts={filteredPosts} competitors={competitors} />}
           {activeTab === 'own'        && <OwnPerformance allPosts={posts} competitors={competitors} />}
           {activeTab === 'ecosystem'  && <Partnerships allPosts={posts} competitors={competitors} />}
-          {activeTab === 'mentions'   && <Mentions dateFrom={dateFrom} dateTo={dateTo} />}
+          {activeTab === 'mentions'   && <Mentions dateFrom={dateFrom} dateTo={dateTo} onFromChange={setDateFrom} onToChange={setDateTo} onClear={clearDates} />}
         </main>
       )}
     </div>

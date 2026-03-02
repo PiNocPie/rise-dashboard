@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { db } from '../firebase'
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore'
+import DateRangePicker from './DateRangePicker'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -304,7 +305,7 @@ function TopAccountsPanel({ mentions }) {
 
 // ─── main component ───────────────────────────────────────────────────────────
 
-export default function Mentions({ dateFrom, dateTo }) {
+export default function Mentions({ dateFrom, dateTo, onFromChange, onToChange, onClear }) {
   const [mentions, setMentions]         = useState([])
   const [loading, setLoading]           = useState(true)
   const [filterAccount, setFilterAccount] = useState('both')
@@ -367,11 +368,26 @@ export default function Mentions({ dateFrom, dateTo }) {
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
-      <div>
-        <h2 className="text-lg font-semibold mb-1" style={{ color: S.text }}>Mentions & Sentiment</h2>
-        <p className="text-xs" style={{ color: S.muted }}>
-          Who talks about RISE — filter by reach to find KOLs worth engaging
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-semibold mb-1" style={{ color: S.text }}>Mentions & Sentiment</h2>
+          <p className="text-xs" style={{ color: S.muted }}>
+            Who talks about RISE — filter by reach to find KOLs worth engaging
+          </p>
+        </div>
+        {(dateFrom || dateTo) && (
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs shrink-0"
+            style={{ background: 'rgba(0,230,118,0.06)', border: `1px solid rgba(0,230,118,0.2)`, color: S.accent }}
+          >
+            <span>📅</span>
+            <span>
+              {dateFrom ? new Date(dateFrom).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '?'}
+              {' – '}
+              {dateTo ? new Date(dateTo).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '?'}
+            </span>
+          </div>
+        )}
       </div>
 
       {mentions.length === 0 ? (
@@ -453,6 +469,20 @@ export default function Mentions({ dateFrom, dateTo }) {
 
           {/* Filters */}
           <div className="flex flex-wrap items-center gap-3">
+            {/* Date range */}
+            {onFromChange && (
+              <>
+                <DateRangePicker
+                  dateFrom={dateFrom}
+                  dateTo={dateTo}
+                  onFromChange={onFromChange}
+                  onToChange={onToChange}
+                  onClear={onClear}
+                />
+                <div className="h-4 w-px" style={{ background: S.border }} />
+              </>
+            )}
+
             {/* Account filter */}
             <div className="flex items-center gap-1">
               {[['both', 'All'], ['RISE', 'RISE'], ['RISEx', 'RISEx']].map(([k, l]) => (
