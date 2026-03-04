@@ -492,17 +492,13 @@ export default function App() {
 
       {platform === 'discord' ? (
         <main className="max-w-screen-xl mx-auto px-6 py-6">
-          <div className="flex flex-col items-center justify-center" style={{ minHeight: 480 }}>
-            <div style={{ fontSize: 56, marginBottom: 20 }}>🚧</div>
-            <div className="text-lg font-semibold mb-2" style={{ color: '#e8e8e8' }}>Discord Dashboard — Coming Soon</div>
-            <div className="text-sm text-center max-w-md" style={{ color: '#888', lineHeight: 1.7 }}>
-              We're building the Discord community intelligence panel.<br />
-              Member growth, active channels, hot topics, and support tickets — all in one place.
-            </div>
-            <div className="mt-8 px-4 py-2 rounded text-xs font-medium" style={{ background: 'rgba(99,102,241,0.1)', color: '#a78bfa', border: '1px solid rgba(99,102,241,0.25)' }}>
-              Under Construction
-            </div>
-          </div>
+          <DiscordDashboard
+            isLoggedIn={isLoggedIn}
+            onRefresh={handleDiscordRefresh}
+            refreshing={discordRefreshing}
+            dateFrom={dateFrom}
+            dateTo={dateTo}
+          />
         </main>
       ) : loading ? (
         <div className="flex items-center justify-center h-64">

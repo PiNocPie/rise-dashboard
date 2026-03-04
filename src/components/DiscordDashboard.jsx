@@ -574,13 +574,15 @@ function TrendsTab({ snapshots }) {
 
 // ─── Tickets tab ─────────────────────────────────────────────────────────────
 
-function TicketsTab({ rise, risex, resolvedIds, onResolve, isLoggedIn }) {
+function TicketsTab({ rise, risex, resolvedIds, onResolve, onAlertSlack, alertStatus, isLoggedIn }) {
   const all = [
     ...(rise?.pendingTickets || []).map(t => ({ ...t, server: 'RISE' })),
     ...(risex?.pendingTickets || []).map(t => ({ ...t, server: 'RISEx' })),
   ]
     .filter(t => !resolvedIds.has(`${t.server}-${t.channelId}-${t.id}`))
     .sort((a, b) => (a.hasStaffReply ? 1 : 0) - (b.hasStaffReply ? 1 : 0) || (b.idleHours || b.ageHours || 0) - (a.idleHours || a.ageHours || 0))
+
+  const unanswered = all.filter(t => !t.hasStaffReply)
 
   if (all.length === 0) {
     return (
@@ -596,19 +598,43 @@ function TicketsTab({ rise, risex, resolvedIds, onResolve, isLoggedIn }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div className="text-sm font-bold text-white">
-          {all.length} Item{all.length !== 1 ? 's' : ''} Need Attention
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="text-sm font-bold text-white">
+            {all.length} Item{all.length !== 1 ? 's' : ''} Need Attention
+          </div>
+          {unanswered.length > 0 && (
+            <div className="text-xs mt-0.5" style={{ color: '#ef4444' }}>
+              {unanswered.length} with no staff reply yet
+            </div>
+          )}
         </div>
-        <div
-          className="text-xs px-2.5 py-1 rounded-lg font-medium"
-          style={{
-            backgroundColor: 'rgba(239,68,68,0.1)',
-            border: '1px solid rgba(239,68,68,0.2)',
-            color: '#f87171',
-          }}
-        >
-          ⚠️ Action Required
+        <div className="flex items-center gap-2">
+          {unanswered.length > 0 && (
+            <button
+              onClick={() => onAlertSlack(unanswered)}
+              disabled={alertStatus === 'sending'}
+              className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all"
+              style={{
+                backgroundColor: alertStatus === 'sending' ? 'transparent' : 'rgba(0,230,118,0.08)',
+                border: '1px solid rgba(0,230,118,0.25)',
+                color: alertStatus === 'sending' ? '#555555' : '#00e676',
+                cursor: alertStatus === 'sending' ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {alertStatus === 'sending' ? '⟳ Sending…' : `🔔 Alert Slack (${unanswered.length})`}
+            </button>
+          )}
+          <div
+            className="text-xs px-2.5 py-1 rounded-lg font-medium"
+            style={{
+              backgroundColor: 'rgba(239,68,68,0.1)',
+              border: '1px solid rgba(239,68,68,0.2)',
+              color: '#f87171',
+            }}
+          >
+            ⚠️ Action Required
+          </div>
         </div>
       </div>
 
@@ -697,6 +723,8 @@ export default function DiscordDashboard({ isLoggedIn, onRefresh, refreshing, da
   const [snapshots, setSnapshots] = useState([])
   const [loading, setLoading] = useState(true)
   const [resolvedIds, setResolvedIds] = useState(new Set())
+  const [alertStatus, setAlertStatus] = useState(null) // null | 'sending' | 'sent' | 'error'
+  const [alertMsg, setAlertMsg]       = useState('')
 
   useEffect(() => {
     const q = query(
@@ -721,6 +749,30 @@ export default function DiscordDashboard({ isLoggedIn, onRefresh, refreshing, da
 
   const handleResolve = async (ticketKey) => {
     await setDoc(doc(db, 'discord_meta', 'resolved_tickets'), { ids: arrayUnion(ticketKey) }, { merge: true })
+  }
+
+  const handleAlertSlack = async (tickets) => {
+    setAlertStatus('sending')
+    setAlertMsg('')
+    try {
+      const r = await fetch('/api/discord-ticket-alert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tickets }),
+      })
+      const data = await r.json()
+      if (data.ok) {
+        setAlertStatus('sent')
+        setAlertMsg(`Sent ${data.sent} ticket${data.sent !== 1 ? 's' : ''} to Slack`)
+      } else {
+        setAlertStatus('error')
+        setAlertMsg(data.error || 'Failed to send')
+      }
+    } catch {
+      setAlertStatus('error')
+      setAlertMsg('Network error')
+    }
+    setTimeout(() => { setAlertStatus(null); setAlertMsg('') }, 5000)
   }
 
   // Filter snapshots by date range, then pick latest per server within that window
@@ -843,7 +895,31 @@ export default function DiscordDashboard({ isLoggedIn, onRefresh, refreshing, da
           {activeTab === 'channels'    && <ChannelsTab    rise={rise} risex={risex} />}
           {activeTab === 'discussions' && <DiscussionsTab rise={rise} risex={risex} />}
           {activeTab === 'trends'      && <TrendsTab      snapshots={snapshots} />}
-          {activeTab === 'tickets'     && <TicketsTab     rise={rise} risex={risex} resolvedIds={resolvedIds} onResolve={handleResolve} isLoggedIn={isLoggedIn} />}
+          {activeTab === 'tickets'     && (
+            <>
+              {alertMsg && (
+                <div
+                  className="px-4 py-2.5 rounded-lg text-xs mb-4"
+                  style={{
+                    backgroundColor: alertStatus === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(0,230,118,0.08)',
+                    border: `1px solid ${alertStatus === 'error' ? 'rgba(239,68,68,0.3)' : 'rgba(0,230,118,0.3)'}`,
+                    color: alertStatus === 'error' ? '#f87171' : '#00e676',
+                  }}
+                >
+                  {alertStatus === 'sent' ? '✓ ' : '✕ '}{alertMsg}
+                </div>
+              )}
+              <TicketsTab
+                rise={rise}
+                risex={risex}
+                resolvedIds={resolvedIds}
+                onResolve={handleResolve}
+                onAlertSlack={handleAlertSlack}
+                alertStatus={alertStatus}
+                isLoggedIn={isLoggedIn}
+              />
+            </>
+          )}
         </>
       )}
     </div>
