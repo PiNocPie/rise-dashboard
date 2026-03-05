@@ -225,10 +225,9 @@ export default async function handler(req, res) {
   const mentionsAdded = await syncMentions(db, BEARER, startTime, endTime)
   console.log('Mentions sync complete:', mentionsAdded)
 
-  // Build and send daily digest to Slack + Discord
-  const slackWebhook = process.env.SLACK_WEBHOOK_URL
+  // Build and send daily digest to Discord
   const discordWebhook = process.env.DISCORD_DIGEST_WEBHOOK_URL
-  if (slackWebhook || discordWebhook) {
+  if (discordWebhook) {
     try {
       function fmtNum(n) {
         if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
@@ -324,20 +323,7 @@ export default async function handler(req, res) {
         return text
       }
 
-      if (slackWebhook) {
-        const slackResp = await fetch(slackWebhook, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: buildDigest('slack') }),
-        })
-        if (!slackResp.ok) {
-          console.error('Slack error:', slackResp.status, await slackResp.text().catch(() => ''))
-        } else {
-          console.log('Slack digest sent')
-        }
-      }
-
-      if (discordWebhook) {
+      {
         // Discord has 2000 char limit — split into chunks if needed
         const fullText = buildDigest('discord')
         const chunks = []

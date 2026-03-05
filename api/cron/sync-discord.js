@@ -248,8 +248,8 @@ async function analyzeGuild(guildId, guildName, token, db) {
   return snapshot
 }
 
-function buildDigestLines(snapshots, format = 'slack') {
-  const bold = (t) => format === 'discord' ? `**${t}**` : `*${t}*`
+function buildDigestLines(snapshots) {
+  const bold = (t) => `**${t}**`
   const lines = [`📊 ${bold('RISE Discord Daily Report')}`, '━━━━━━━━━━━━━━━━━━━━', '']
 
   for (const s of snapshots) {
@@ -272,9 +272,7 @@ function buildDigestLines(snapshots, format = 'slack') {
       lines.push(`⚠️ ${bold(s.pendingTickets.length + ' ticket' + (s.pendingTickets.length > 1 ? 's' : '') + ' need attention')}`)
       for (const t of s.pendingTickets.slice(0, 3)) {
         const replyFlag = t.hasStaffReply ? '✅' : '🔴'
-        const link = t.url
-          ? (format === 'discord' ? ` [view](${t.url})` : ` <${t.url}|view>`)
-          : ''
+        const link = t.url ? ` [view](${t.url})` : ''
         lines.push(`  • ${replyFlag} #${t.channelName} — ${t.authorName}: "${(t.preview || '').slice(0, 60)}…" (idle ${t.idleHours}h)${link}`)
       }
     }
@@ -282,25 +280,8 @@ function buildDigestLines(snapshots, format = 'slack') {
   }
 
   const dashUrl = process.env.DASHBOARD_URL || 'https://rise-dashboard-bice.vercel.app'
-  lines.push(format === 'discord'
-    ? `[🔗 Open Dashboard](${dashUrl})`
-    : `<${dashUrl}|🔗 Open Dashboard>`)
-
+  lines.push(`[🔗 Open Dashboard](${dashUrl})`)
   return lines.join('\n')
-}
-
-async function sendSlackDigest(snapshots) {
-  const webhook = process.env.SLACK_WEBHOOK_URL
-  if (!webhook) return
-  try {
-    await fetch(webhook, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: buildDigestLines(snapshots, 'slack') }),
-    })
-  } catch {
-    // Slack digest failure is non-fatal
-  }
 }
 
 async function sendDiscordDigest(snapshots) {
@@ -310,7 +291,7 @@ async function sendDiscordDigest(snapshots) {
     await fetch(webhook, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: buildDigestLines(snapshots, 'discord') }),
+      body: JSON.stringify({ content: buildDigestLines(snapshots) }),
     })
   } catch {
     // Discord digest failure is non-fatal
@@ -360,10 +341,7 @@ export default async function handler(req, res) {
   }
 
   if (successSnapshots.length > 0) {
-    await Promise.all([
-      sendSlackDigest(successSnapshots),
-      sendDiscordDigest(successSnapshots),
-    ])
+    await sendDiscordDigest(successSnapshots)
   }
 
   return res.json({ ok: true, results, syncedAt: new Date().toISOString() })
