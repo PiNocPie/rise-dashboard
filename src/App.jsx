@@ -15,7 +15,7 @@ import Partnerships from './components/Partnerships'
 import Mentions from './components/Mentions'
 import DiscordDashboard from './components/DiscordDashboard'
 import DateRangePicker from './components/DateRangePicker'
-import MarketTerminal from './components/MarketTerminal'
+import TwitterTrends from './components/TwitterTrends'
 
 // Two-level navigation: groups + sub-tabs
 const NAV = [
@@ -291,7 +291,7 @@ export default function App() {
                       : { color: D.muted }
                   }
                 >
-                  Markets
+                  Trends
                 </button>
                 <button
                   onClick={() => setPlatform('discord')}
@@ -505,9 +505,7 @@ export default function App() {
       )}
 
       {platform === 'markets' ? (
-        <div style={{ background: '#080808' }}>
-          <MarketTerminal />
-        </div>
+        <TwitterTrends />
       ) : platform === 'discord' ? (
         <main className="max-w-screen-xl mx-auto px-6 py-6">
           <DiscordDashboard
