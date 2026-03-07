@@ -64,7 +64,7 @@ function StatBar({ totalTweets, totalEngagement, hours, fetchedAt, topic }) {
       <span>
         <span style={{ color: T.accent }}>{fmtNum(totalEngagement)}</span> engagement
       </span>
-      <span>window: <span style={{ color: T.text }}>{hours}h</span></span>
+      <span>window: <span style={{ color: T.text }}>{hours < 1 ? `${Math.round(hours * 60)}m` : `${hours}h`}</span></span>
       {topic && (
         <span>
           topic: <span style={{ color: T.accent }}>"{topic}"</span>
@@ -257,7 +257,7 @@ function SentimentSummary({ tweets }) {
 const SUGGESTED = ['Paradex TGE', 'RISE chain', 'Monad mainnet', 'Hyperliquid', 'Berachain']
 
 export default function TwitterTrends() {
-  const [hours, setHours] = useState(6)
+  const [hours, setHours] = useState(6)   // fractional: 5m = 0.083
   const [topicInput, setTopicInput] = useState('')
   const [activeTopic, setActiveTopic] = useState('')
   const [data, setData] = useState(null)
@@ -396,18 +396,26 @@ export default function TwitterTrends() {
             {/* Time window + refresh */}
             <div className="flex items-center gap-3 mt-1">
               <div className="flex items-center gap-1 p-0.5 rounded" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-                {[1, 6, 24].map(h => (
+                {[
+                  { value: 5/60, label: '5m' },
+                  { value: 1,    label: '1h' },
+                  { value: 2,    label: '2h' },
+                  { value: 3,    label: '3h' },
+                  { value: 4,    label: '4h' },
+                  { value: 6,    label: '6h' },
+                  { value: 24,   label: '24h' },
+                ].map(({ value, label }) => (
                   <button
-                    key={h}
-                    onClick={() => setHours(h)}
-                    className="px-3 py-1 rounded text-xs font-mono transition-all"
+                    key={label}
+                    onClick={() => setHours(value)}
+                    className="px-2.5 py-1 rounded text-xs font-mono transition-all"
                     style={
-                      hours === h
+                      hours === value
                         ? { background: T.accent, color: '#000', fontWeight: 600 }
                         : { color: T.sub }
                     }
                   >
-                    {h}h
+                    {label}
                   </button>
                 ))}
               </div>
@@ -498,7 +506,7 @@ export default function TwitterTrends() {
           {/* Empty state */}
           {(!data.topTweets?.length && !data.trending?.length) && (
             <div className="text-center py-16">
-              <p className="text-sm" style={{ color: T.sub }}>No tweets found for this query in the last {hours}h.</p>
+              <p className="text-sm" style={{ color: T.sub }}>No tweets found for this query in the last {hours < 1 ? `${Math.round(hours * 60)}m` : `${hours}h`}.</p>
               <p className="text-xs mt-1" style={{ color: T.muted }}>Try a different topic or a longer time window.</p>
             </div>
           )}

@@ -63,15 +63,21 @@ NAV.forEach(g => {
 // All valid tab IDs for hash routing
 const ALL_TABS = new Set(Object.keys(TAB_TO_GROUP))
 
-function getHashTab() {
+// Platform hashes: #trends → 'markets', #discord → 'discord'
+const HASH_TO_PLATFORM = { trends: 'markets', discord: 'discord' }
+const PLATFORM_TO_HASH = { markets: 'trends', discord: 'discord' }
+
+function getInitialState() {
   const hash = window.location.hash.replace('#', '').toLowerCase()
-  return ALL_TABS.has(hash) ? hash : 'dashboard'
+  if (HASH_TO_PLATFORM[hash]) return { platform: HASH_TO_PLATFORM[hash], tab: 'dashboard' }
+  return { platform: 'twitter', tab: ALL_TABS.has(hash) ? hash : 'dashboard' }
 }
 
 export default function App() {
-  const [platform, setPlatform] = useState('twitter')   // 'twitter' | 'discord'
+  const init = getInitialState()
+  const [platform, setPlatform] = useState(init.platform)
   const [posts, setPosts] = useState([])
-  const [activeTab, setActiveTab] = useState(getHashTab)
+  const [activeTab, setActiveTab] = useState(init.tab)
   const activeGroup = TAB_TO_GROUP[activeTab] || 'dashboard'
   const [importMsg, setImportMsg] = useState(null)
   const [dateFrom, setDateFrom] = useState('')
@@ -89,15 +95,30 @@ export default function App() {
 
   const clearDates = () => { setDateFrom(''); setDateTo('') }
 
+  // Platform switcher — updates URL hash so pages are directly linkable
+  const handleSetPlatform = (p) => {
+    setPlatform(p)
+    window.location.hash = PLATFORM_TO_HASH[p] || activeTab
+  }
+
   // Keep URL hash in sync with active tab
   const navigateTo = (tab) => {
     setActiveTab(tab)
+    setPlatform('twitter')
     window.location.hash = tab
   }
 
   // Handle browser back/forward
   useEffect(() => {
-    const handler = () => setActiveTab(getHashTab())
+    const handler = () => {
+      const hash = window.location.hash.replace('#', '').toLowerCase()
+      if (HASH_TO_PLATFORM[hash]) {
+        setPlatform(HASH_TO_PLATFORM[hash])
+      } else {
+        setPlatform('twitter')
+        setActiveTab(ALL_TABS.has(hash) ? hash : 'dashboard')
+      }
+    }
     window.addEventListener('hashchange', handler)
     return () => window.removeEventListener('hashchange', handler)
   }, [])
@@ -272,7 +293,7 @@ export default function App() {
                 style={{ background: '#1e1e1e', border: `1px solid ${D.border}` }}
               >
                 <button
-                  onClick={() => setPlatform('twitter')}
+                  onClick={() => handleSetPlatform('twitter')}
                   className="px-3 py-1.5 text-xs font-medium rounded transition-all"
                   style={
                     platform === 'twitter'
@@ -283,7 +304,7 @@ export default function App() {
                   RISE
                 </button>
                 <button
-                  onClick={() => setPlatform('markets')}
+                  onClick={() => handleSetPlatform('markets')}
                   className="px-3 py-1.5 text-xs font-medium rounded transition-all"
                   style={
                     platform === 'markets'
@@ -294,7 +315,7 @@ export default function App() {
                   Trends
                 </button>
                 <button
-                  onClick={() => setPlatform('discord')}
+                  onClick={() => handleSetPlatform('discord')}
                   className="px-3 py-1.5 text-xs font-medium rounded transition-all"
                   style={
                     platform === 'discord'
