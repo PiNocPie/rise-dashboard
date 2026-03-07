@@ -15,6 +15,7 @@ import Partnerships from './components/Partnerships'
 import Mentions from './components/Mentions'
 import DiscordDashboard from './components/DiscordDashboard'
 import DateRangePicker from './components/DateRangePicker'
+import MarketTerminal from './components/MarketTerminal'
 
 // Two-level navigation: groups + sub-tabs
 const NAV = [
@@ -275,11 +276,22 @@ export default function App() {
                   className="px-3 py-1.5 text-xs font-medium rounded transition-all"
                   style={
                     platform === 'twitter'
-                      ? { background: D.accent, color: '#fff' }
+                      ? { background: D.accent, color: '#000' }
                       : { color: D.muted }
                   }
                 >
-                  𝕏 Twitter
+                  RISE
+                </button>
+                <button
+                  onClick={() => setPlatform('markets')}
+                  className="px-3 py-1.5 text-xs font-medium rounded transition-all"
+                  style={
+                    platform === 'markets'
+                      ? { background: '#f59e0b', color: '#000' }
+                      : { color: D.muted }
+                  }
+                >
+                  Markets
                 </button>
                 <button
                   onClick={() => setPlatform('discord')}
@@ -294,14 +306,16 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Date range */}
-              <DateRangePicker
-                dateFrom={dateFrom}
-                dateTo={dateTo}
-                onFromChange={setDateFrom}
-                onToChange={setDateTo}
-                onClear={clearDates}
-              />
+              {/* Date range — hidden on Markets */}
+              {platform !== 'markets' && (
+                <DateRangePicker
+                  dateFrom={dateFrom}
+                  dateTo={dateTo}
+                  onFromChange={setDateFrom}
+                  onToChange={setDateTo}
+                  onClear={clearDates}
+                />
+              )}
 
               {/* Twitter admin controls */}
               {platform === 'twitter' && isLoggedIn && (
@@ -490,7 +504,11 @@ export default function App() {
         </div>
       )}
 
-      {platform === 'discord' ? (
+      {platform === 'markets' ? (
+        <div style={{ background: '#080808' }}>
+          <MarketTerminal />
+        </div>
+      ) : platform === 'discord' ? (
         <main className="max-w-screen-xl mx-auto px-6 py-6">
           <DiscordDashboard
             isLoggedIn={isLoggedIn}
