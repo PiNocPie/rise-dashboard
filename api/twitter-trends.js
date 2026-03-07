@@ -15,15 +15,13 @@ export default async function handler(req, res) {
   let baseQuery
   if (!customQ) {
     baseQuery = '(crypto OR bitcoin OR ethereum OR defi OR web3 OR solana OR altcoin OR nft OR blockchain) lang:en -is:retweet'
+  } else if (customQ.startsWith('@')) {
+    // Explicit @username → scan that account's tweets directly (no crypto anchor needed)
+    const handle = customQ.replace(/^@/, '').trim()
+    baseQuery = `from:${handle} -is:retweet`
   } else {
-    // @username or username-only → scan that account's tweets
-    const handleMatch = customQ.match(/^@?([A-Za-z0-9_]{1,50})$/)
-    if (handleMatch) {
-      baseQuery = `from:${handleMatch[1]} -is:retweet`
-    } else {
-      // Keyword search anchored to crypto context
-      baseQuery = `(${customQ}) ${CRYPTO_ANCHOR} lang:en -is:retweet`
-    }
+    // Keyword search anchored to crypto context
+    baseQuery = `(${customQ}) ${CRYPTO_ANCHOR} lang:en -is:retweet`
   }
 
   const params = new URLSearchParams({
