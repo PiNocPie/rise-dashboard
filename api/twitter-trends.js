@@ -8,10 +8,11 @@ export default async function handler(req, res) {
   const hours = Math.min(parseInt(req.query.hours || '6'), 24)
   const since = new Date(Date.now() - hours * 3_600_000).toISOString()
 
-  // Custom topic overrides the default broad crypto query
+  // Custom topic — always anchored to crypto context to filter out unrelated noise
+  const CRYPTO_ANCHOR = '(crypto OR blockchain OR web3 OR defi OR ethereum OR bitcoin OR solana OR nft OR token OR layer2 OR l2 OR altcoin OR dex OR dao OR airdrop OR mainnet OR testnet OR protocol)'
   const customQ = (req.query.q || '').trim()
   const baseQuery = customQ
-    ? `(${customQ}) lang:en -is:retweet`
+    ? `(${customQ}) ${CRYPTO_ANCHOR} lang:en -is:retweet`
     : '(crypto OR bitcoin OR ethereum OR defi OR web3 OR solana OR altcoin OR nft OR blockchain) lang:en -is:retweet'
 
   const params = new URLSearchParams({
