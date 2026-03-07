@@ -254,7 +254,7 @@ function SentimentSummary({ tweets }) {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-const SUGGESTED = ['Paradex TGE', 'RISE chain', 'Monad mainnet', 'Hyperliquid', 'Berachain']
+const SUGGESTED = ['RISE chain', 'RISEx', 'Perp Dex', 'TGE', 'Hyperliquid', 'Lighter']
 
 export default function TwitterTrends() {
   const [hours, setHours] = useState(6)
