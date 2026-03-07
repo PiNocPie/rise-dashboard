@@ -252,6 +252,88 @@ function SentimentSummary({ tweets }) {
   )
 }
 
+function TopVoices({ tweets }) {
+  if (!tweets?.length) return null
+
+  // Aggregate per author
+  const byAuthor = {}
+  for (const t of tweets) {
+    if (!t.authorUsername) continue
+    if (!byAuthor[t.authorUsername]) {
+      byAuthor[t.authorUsername] = {
+        username: t.authorUsername,
+        name: t.authorName || t.authorUsername,
+        followers: t.authorFollowers || 0,
+        tweets: 0,
+        totalViews: 0,
+        totalEngagement: 0,
+        sentiment: { pos: 0, neg: 0, neu: 0 },
+      }
+    }
+    const a = byAuthor[t.authorUsername]
+    a.tweets++
+    a.totalViews += t.views || 0
+    a.totalEngagement += (t.likes || 0) + (t.retweets || 0) + (t.replies || 0)
+    a.sentiment[sentiment(t.text)]++
+  }
+
+  const voices = Object.values(byAuthor)
+    .sort((a, b) => b.followers - a.followers)
+    .slice(0, 10)
+
+  if (!voices.length) return null
+
+  const maxFollowers = voices[0].followers || 1
+
+  return (
+    <section>
+      <h2 className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: T.sub }}>
+        Top Voices
+      </h2>
+      <div className="flex flex-col gap-1.5">
+        {voices.map((v, i) => {
+          const dom = Object.entries(v.sentiment).sort((a, b) => b[1] - a[1])[0][0]
+          const sentColor = dom === 'pos' ? T.pos : dom === 'neg' ? T.neg : T.neu
+          const sentLabel = dom === 'pos' ? '▲' : dom === 'neg' ? '▼' : '―'
+          const barW = `${Math.max(2, (v.followers / maxFollowers) * 100)}%`
+          return (
+            <div
+              key={v.username}
+              className="flex items-center gap-3 px-3 py-2 rounded text-xs"
+              style={{ background: T.card, border: `1px solid ${T.border}` }}
+            >
+              <span className="w-5 text-right font-mono" style={{ color: T.muted }}>{i + 1}</span>
+              <a
+                href={`https://x.com/${v.username}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-32 shrink-0 truncate hover:opacity-70 transition-opacity"
+                style={{ color: T.accent, fontFamily: 'monospace' }}
+              >
+                @{v.username}
+              </a>
+              {/* follower bar */}
+              <div className="flex-1 relative" style={{ height: 16, background: T.surface, borderRadius: 2 }}>
+                <div style={{ width: barW, height: '100%', background: T.accent, opacity: 0.2, borderRadius: 2, transition: 'width 0.5s ease' }} />
+                <span className="absolute inset-0 flex items-center px-2 font-mono" style={{ color: T.sub, fontSize: 10 }}>
+                  {fmtNum(v.followers)} followers
+                </span>
+              </div>
+              <span className="w-16 text-right font-mono shrink-0" style={{ color: T.sub }}>
+                {fmtNum(v.totalViews)} views
+              </span>
+              <span className="w-12 text-right font-mono shrink-0" style={{ color: T.sub }}>
+                {v.tweets} tweet{v.tweets > 1 ? 's' : ''}
+              </span>
+              <span className="w-4 text-center shrink-0" style={{ color: sentColor }}>{sentLabel}</span>
+            </div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 
 const SUGGESTED = ['@risechain', '@risextrade', 'Perp Dex', 'TGE', 'Hyperliquid', 'Lighter']
@@ -535,6 +617,11 @@ export default function TwitterTrends() {
           {/* Sentiment summary */}
           {filteredTweets.length > 0 && (
             <SentimentSummary tweets={filteredTweets} />
+          )}
+
+          {/* Top voices */}
+          {filteredTweets.length > 0 && (
+            <TopVoices tweets={filteredTweets} />
           )}
 
           {/* Top tweets */}
