@@ -257,7 +257,7 @@ function SentimentSummary({ tweets }) {
 const SUGGESTED = ['Paradex TGE', 'RISE chain', 'Monad mainnet', 'Hyperliquid', 'Berachain']
 
 export default function TwitterTrends() {
-  const [hours, setHours] = useState(6)   // fractional: 5m = 0.083
+  const [hours, setHours] = useState(6)
   const [topicInput, setTopicInput] = useState('')
   const [activeTopic, setActiveTopic] = useState('')
   const [data, setData] = useState(null)
@@ -397,7 +397,6 @@ export default function TwitterTrends() {
             <div className="flex items-center gap-3 mt-1">
               <div className="flex items-center gap-1 p-0.5 rounded" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
                 {[
-                  { value: 5/60, label: '5m' },
                   { value: 1,    label: '1h' },
                   { value: 2,    label: '2h' },
                   { value: 3,    label: '3h' },
