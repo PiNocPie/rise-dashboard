@@ -8,12 +8,23 @@ export default async function handler(req, res) {
   const hours = Math.min(parseInt(req.query.hours || '6'), 24)
   const since = new Date(Date.now() - hours * 3_600_000).toISOString()
 
-  // Custom topic — always anchored to crypto context to filter out unrelated noise
+  // Custom topic — supports @username (→ from:user) or keyword search
   const CRYPTO_ANCHOR = '(crypto OR blockchain OR web3 OR defi OR ethereum OR bitcoin OR solana OR nft OR token OR layer2 OR l2 OR altcoin OR dex OR dao OR airdrop OR mainnet OR testnet OR protocol)'
   const customQ = (req.query.q || '').trim()
-  const baseQuery = customQ
-    ? `(${customQ}) ${CRYPTO_ANCHOR} lang:en -is:retweet`
-    : '(crypto OR bitcoin OR ethereum OR defi OR web3 OR solana OR altcoin OR nft OR blockchain) lang:en -is:retweet'
+
+  let baseQuery
+  if (!customQ) {
+    baseQuery = '(crypto OR bitcoin OR ethereum OR defi OR web3 OR solana OR altcoin OR nft OR blockchain) lang:en -is:retweet'
+  } else {
+    // @username or username-only → scan that account's tweets
+    const handleMatch = customQ.match(/^@?([A-Za-z0-9_]{1,50})$/)
+    if (handleMatch) {
+      baseQuery = `from:${handleMatch[1]} -is:retweet`
+    } else {
+      // Keyword search anchored to crypto context
+      baseQuery = `(${customQ}) ${CRYPTO_ANCHOR} lang:en -is:retweet`
+    }
+  }
 
   const params = new URLSearchParams({
     query: baseQuery,

@@ -254,7 +254,7 @@ function SentimentSummary({ tweets }) {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-const SUGGESTED = ['RISE chain', 'RISEx', 'Perp Dex', 'TGE', 'Hyperliquid', 'Lighter']
+const SUGGESTED = ['@risechain', '@risextrade', 'Perp Dex', 'TGE', 'Hyperliquid', 'Lighter']
 
 export default function TwitterTrends() {
   const [hours, setHours] = useState(6)
@@ -343,7 +343,7 @@ export default function TwitterTrends() {
                   value={topicInput}
                   onChange={e => setTopicInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleMonitor()}
-                  placeholder="Type a topic to monitor (e.g. Paradex TGE, Monad launch…)"
+                  placeholder="Topic, keyword, or @username (e.g. @risechain, Perp Dex, TGE…)"
                   className="flex-1 bg-transparent text-sm outline-none"
                   style={{ color: T.text, caretColor: T.accent }}
                 />
