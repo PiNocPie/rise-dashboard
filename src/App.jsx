@@ -327,8 +327,8 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Date range — hidden on Markets */}
-              {platform !== 'markets' && (
+              {/* Date range — only for logged-in RISE platform */}
+              {platform === 'twitter' && isLoggedIn && (
                 <DateRangePicker
                   dateFrom={dateFrom}
                   dateTo={dateTo}
