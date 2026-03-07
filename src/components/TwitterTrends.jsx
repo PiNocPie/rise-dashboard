@@ -336,7 +336,7 @@ function TopVoices({ tweets }) {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-const SUGGESTED = ['@risechain', '@risextrade', 'Perp Dex', 'TGE', 'Hyperliquid', 'Lighter']
+const SUGGESTED = ['RISE chain', 'RISEx', 'Perp Dex', 'TGE', 'Hyperliquid', 'Lighter']
 
 // Twitter free tier: 1 search req / 15 min. Enforce a 15-min cooldown after each fetch.
 const COOLDOWN_MS = 15 * 60 * 1000
