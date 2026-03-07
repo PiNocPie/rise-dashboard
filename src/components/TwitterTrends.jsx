@@ -258,6 +258,7 @@ const SUGGESTED = ['@risechain', '@risextrade', 'Perp Dex', 'TGE', 'Hyperliquid'
 
 export default function TwitterTrends() {
   const [hours, setHours] = useState(6)
+  const [minFollowers, setMinFollowers] = useState(0)
   const [topicInput, setTopicInput] = useState('')
   const [activeTopic, setActiveTopic] = useState('')
   const [data, setData] = useState(null)
@@ -418,6 +419,29 @@ export default function TwitterTrends() {
                   </button>
                 ))}
               </div>
+              {/* Follower filter */}
+              <div className="flex items-center gap-1 p-0.5 rounded" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
+                {[
+                  { value: 0,       label: 'All' },
+                  { value: 1000,    label: '1k+' },
+                  { value: 10000,   label: '10k+' },
+                  { value: 100000,  label: '100k+' },
+                ].map(({ value, label }) => (
+                  <button
+                    key={label}
+                    onClick={() => setMinFollowers(value)}
+                    className="px-2.5 py-1 rounded text-xs font-mono transition-all"
+                    style={
+                      minFollowers === value
+                        ? { background: T.accent, color: '#000', fontWeight: 600 }
+                        : { color: T.sub }
+                    }
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
               <button
                 onClick={() => fetchTrends(hours, activeTopic)}
                 disabled={loading}
@@ -462,44 +486,46 @@ export default function TwitterTrends() {
 
       {/* ── Main content ─────────────────────────────────────────────────────── */}
       {data && !loading && (
-        <div className="max-w-screen-xl mx-auto px-6 py-6 flex flex-col gap-8">
+        <div className="max-w-screen-xl mx-auto px-6 py-6 flex flex-col gap-8">{
+          (() => {
+            const filteredTweets = (data.topTweets || []).filter(t => t.authorFollowers >= minFollowers)
+            return (<>
 
           {/* Hashtags + Mindshare side by side */}
           <div className="grid gap-6" style={{ gridTemplateColumns: '1fr 1fr' }}>
-            <div
-              className="rounded p-4"
-              style={{ background: T.surface, border: `1px solid ${T.border}` }}
-            >
+            <div className="rounded p-4" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
               <HashtagCloud tags={data.trending} />
             </div>
-            <div
-              className="rounded p-4"
-              style={{ background: T.surface, border: `1px solid ${T.border}` }}
-            >
+            <div className="rounded p-4" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
               <MindshareChart mindshare={data.mindshare} />
             </div>
           </div>
 
           {/* Sentiment summary */}
-          {data.topTweets?.length > 0 && (
-            <SentimentSummary tweets={data.topTweets} />
+          {filteredTweets.length > 0 && (
+            <SentimentSummary tweets={filteredTweets} />
           )}
 
           {/* Top tweets */}
-          {data.topTweets?.length > 0 && (
+          {filteredTweets.length > 0 ? (
             <section>
               <h2 className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: T.sub }}>
                 Top Tweets — sorted by reach
+                {minFollowers > 0 && <span style={{ color: T.muted, fontWeight: 400, marginLeft: 8 }}>· {filteredTweets.length} with {minFollowers >= 1000 ? `${minFollowers/1000}k+` : minFollowers} followers</span>}
               </h2>
-              <div
-                className="grid gap-3"
-                style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}
-              >
-                {data.topTweets.map(tweet => (
+              <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}>
+                {filteredTweets.map(tweet => (
                   <TweetCard key={tweet.id} tweet={tweet} />
                 ))}
               </div>
             </section>
+          ) : (
+            minFollowers > 0 && (
+              <div className="text-center py-8">
+                <p className="text-sm" style={{ color: T.sub }}>No tweets from accounts with {minFollowers >= 1000 ? `${minFollowers/1000}k+` : minFollowers} followers.</p>
+                <p className="text-xs mt-1" style={{ color: T.muted }}>Try a lower follower threshold.</p>
+              </div>
+            )
           )}
 
           {/* Empty state */}
@@ -514,7 +540,9 @@ export default function TwitterTrends() {
           <p className="text-xs text-center pb-4" style={{ color: T.muted }}>
             Data via Twitter API v2 · Free tier max 100 tweets per query · Sentiment is keyword-based estimation
           </p>
-        </div>
+          </>)
+          })()
+        }</div>
       )}
     </div>
   )
