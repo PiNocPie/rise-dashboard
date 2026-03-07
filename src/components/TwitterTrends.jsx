@@ -256,6 +256,9 @@ function SentimentSummary({ tweets }) {
 
 const SUGGESTED = ['@risechain', '@risextrade', 'Perp Dex', 'TGE', 'Hyperliquid', 'Lighter']
 
+// Twitter free tier: 1 search req / 15 min. Enforce a 15-min cooldown after each fetch.
+const COOLDOWN_MS = 15 * 60 * 1000
+
 export default function TwitterTrends() {
   const [hours, setHours] = useState(6)
   const [minFollowers, setMinFollowers] = useState(0)
@@ -264,6 +267,19 @@ export default function TwitterTrends() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [lastFetchAt, setLastFetchAt] = useState(null)   // timestamp ms
+  const [cooldownSec, setCooldownSec] = useState(0)
+
+  // Count down remaining cooldown every second
+  useEffect(() => {
+    if (!lastFetchAt) return
+    const tick = setInterval(() => {
+      const remaining = Math.max(0, Math.ceil((lastFetchAt + COOLDOWN_MS - Date.now()) / 1000))
+      setCooldownSec(remaining)
+      if (remaining === 0) clearInterval(tick)
+    }, 1000)
+    return () => clearInterval(tick)
+  }, [lastFetchAt])
 
   const fetchTrends = useCallback(async (h, topic) => {
     setLoading(true)
@@ -275,6 +291,8 @@ export default function TwitterTrends() {
       const json = await resp.json()
       if (!resp.ok || !json.ok) throw new Error(json.error || 'API error')
       setData(json)
+      setLastFetchAt(Date.now())
+      setCooldownSec(COOLDOWN_MS / 1000)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -282,10 +300,7 @@ export default function TwitterTrends() {
     }
   }, [])
 
-  useEffect(() => {
-    fetchTrends(hours, activeTopic)
-  }, [hours, activeTopic, fetchTrends])
-
+  // No auto-fetch on mount or on change — user must click Monitor/Refresh
   const handleMonitor = () => {
     const t = topicInput.trim()
     setActiveTopic(t)
@@ -301,7 +316,14 @@ export default function TwitterTrends() {
   const handleClearTopic = () => {
     setTopicInput('')
     setActiveTopic('')
-    fetchTrends(hours, '')
+  }
+
+  const canFetch = !loading && cooldownSec === 0
+
+  function fmtCooldown(s) {
+    const m = Math.floor(s / 60)
+    const sec = s % 60
+    return m > 0 ? `${m}m ${sec}s` : `${sec}s`
   }
 
   return (
@@ -354,15 +376,16 @@ export default function TwitterTrends() {
               </div>
               <button
                 onClick={handleMonitor}
-                disabled={loading}
-                className="px-4 py-2 rounded text-sm font-semibold transition-all"
+                disabled={!canFetch}
+                className="px-4 py-2 rounded text-sm font-semibold transition-all whitespace-nowrap"
                 style={{
-                  background: loading ? T.muted : T.accent,
-                  color: '#000',
-                  opacity: loading ? 0.6 : 1,
+                  background: canFetch ? T.accent : T.surface,
+                  color: canFetch ? '#000' : T.muted,
+                  border: canFetch ? 'none' : `1px solid ${T.border}`,
+                  opacity: canFetch ? 1 : 0.7,
                 }}
               >
-                Monitor
+                {loading ? '⟳ Fetching…' : cooldownSec > 0 ? `⏳ ${fmtCooldown(cooldownSec)}` : 'Monitor'}
               </button>
               {activeTopic && (
                 <button
@@ -444,11 +467,11 @@ export default function TwitterTrends() {
 
               <button
                 onClick={() => fetchTrends(hours, activeTopic)}
-                disabled={loading}
+                disabled={!canFetch}
                 className="px-3 py-1 rounded text-xs font-mono transition-all"
-                style={{ border: `1px solid ${T.border}`, color: loading ? T.muted : T.sub, background: T.surface }}
+                style={{ border: `1px solid ${T.border}`, color: canFetch ? T.sub : T.muted, background: T.surface }}
               >
-                {loading ? '⟳ Fetching…' : '⟳ Refresh'}
+                {loading ? '⟳ …' : cooldownSec > 0 ? `⏳ ${fmtCooldown(cooldownSec)}` : '⟳ Refresh'}
               </button>
             </div>
           </div>
@@ -475,7 +498,15 @@ export default function TwitterTrends() {
         </div>
       )}
 
-      {/* ── Loading skeleton ─────────────────────────────────────────────────── */}
+      {/* ── Idle state — no data yet ─────────────────────────────────────────── */}
+      {!data && !loading && !error && (
+        <div className="flex flex-col items-center justify-center py-24 gap-2">
+          <p className="text-sm" style={{ color: T.sub }}>Select a topic and hit <span style={{ color: T.accent }}>Monitor</span> to fetch data.</p>
+          <p className="text-xs" style={{ color: T.muted }}>Twitter free tier: 1 request per 15 minutes.</p>
+        </div>
+      )}
+
+      {/* ── Loading ──────────────────────────────────────────────────────────── */}
       {loading && !data && (
         <div className="flex items-center justify-center py-24">
           <div className="text-xs font-mono" style={{ color: T.muted }}>
